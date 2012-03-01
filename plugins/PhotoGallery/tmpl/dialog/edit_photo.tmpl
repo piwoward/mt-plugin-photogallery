@@ -147,7 +147,11 @@
         hint=""
         show_hint="0"
         help_page="edit_photo">
-        <input type="checkbox" name="allow_comments" id="allow_comments" value="1" <mt:if name="allow_comments" eq="1">checked</mt:if> />
+        <input type="checkbox"
+            name="allow_comments"
+            id="allow_comments"
+            value="1"
+            <mt:if name="allow_comments" eq="1">checked</mt:if> />
         <label for="allow_comments"><__trans phrase="Allow Comments"></label>
     </mtapp:setting>
 <mt:if name="has_exif">

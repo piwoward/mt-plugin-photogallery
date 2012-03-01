@@ -633,15 +633,16 @@ sub upload_photo {
     my ( $url, $w, $h ) = $asset->thumbnail_url(%arg);
 
     my $tmpl = $app->load_tmpl('dialog/edit_photo.tmpl');
-    $tmpl->param( blog_id     => $blog->id );
-    $tmpl->param( entry_id    => $entry->id );
-    $tmpl->param( fname       => $asset->label );
-    $tmpl->param( thumbnail   => $url );
-    $tmpl->param( asset_id    => $asset->id );
-    $tmpl->param( is_image    => 1 );
-    $tmpl->param( url         => $asset->url );
-    $tmpl->param( category_id => $cat->id );
-    $tmpl->param( has_exif    => $exif_date ? 1 : 0 );
+    $tmpl->param( blog_id        => $blog->id );
+    $tmpl->param( entry_id       => $entry->id );
+    $tmpl->param( allow_comments => $blog->allow_comments_default );
+    $tmpl->param( fname          => $asset->label );
+    $tmpl->param( thumbnail      => $url );
+    $tmpl->param( asset_id       => $asset->id );
+    $tmpl->param( is_image       => 1 );
+    $tmpl->param( url            => $asset->url );
+    $tmpl->param( category_id    => $cat->id );
+    $tmpl->param( has_exif       => $exif_date ? 1 : 0 );
     if ( $tmpl->param('has_exif') ) {
 
         my $info = _read_info($asset);
