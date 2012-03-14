@@ -556,13 +556,16 @@ sub upload_photo {
 
     my $entry = MT->model('entry')->new;
     $entry->blog_id( $app->blog->id );
-    $entry->status( MT->model('entry')->RELEASE() );
     $entry->author_id( $app->{author}->id );
     $entry->title( $asset->file_name );
     $entry->category_id( $cat->id );
     $entry->text( $q->param('text') );
     $entry->text_more( $asset->as_html );
     $entry->allow_comments( $q->param('allow_comments') );
+
+    # Set the entry status to based on the blog default, which will respect if
+    # the admin prefers entries to stay unpublished by default, for example.
+    $entry->status( $blog->status_default );
 
     eval 'require Image::ExifTool';
     my $exif_date;
