@@ -53,14 +53,36 @@ sub type_galleries {
     return $out;
 }
 
-sub suppress_create {
+# A checkbox in the plugin Settings will remove the "Write Entry" button from
+# the Header. Also take this opportunity to add an "Upload Photo" button.
+sub xfrm_header {
     my ( $cb, $app, $html_ref ) = @_;
+
+    # Only proceed if this is a photo gallery blog.
     return
       unless in_gallery()
           && plugin()
           ->get_config_value( 'suppress_create_entry',
               'blog:' . $app->blog->id );
-    $$html_ref =~ s{<li id="create-entry" class="nav-link">.*</a></li>}{};
+
+    my $replacement = '';
+
+    # If the user has permission to post entries, show them the Upload Photo
+    # button in place of the Write Entry button.
+    if ($app->permissions->can_post) {
+        $replacement = <<HTML;
+<li id="create-entry" class="nav-link">
+    <a href="javascript:void(0);"
+        onclick="return openDialog(false, 'PhotoGallery.start', 'blog_id=<mt:BlogID>')">
+        <span>Upload Photo</span>
+    </a>
+</li>
+HTML
+    }
+
+    # Finally, remove the Write Entry button and if needed add the replacement
+    # Upload Photo button.
+    $$html_ref =~ s{<li id="create-entry" class="nav-link">.*</a></li>}{$replacement};
 }
 
 sub load_list_filters {

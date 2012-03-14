@@ -15,7 +15,7 @@ config_types:
 
 callbacks: 
   MT::App::CMS::template_output.list_category: $PhotoGallery::PhotoGallery::Plugin::xfrm_categories
-  MT::App::CMS::template_source.header:  $PhotoGallery::PhotoGallery::Plugin::suppress_create
+  MT::App::CMS::template_source.header:  $PhotoGallery::PhotoGallery::Plugin::xfrm_header
 
 applications:
   cms:
@@ -31,6 +31,20 @@ applications:
     menus: $PhotoGallery::PhotoGallery::Plugin::load_menus
     list_filters: $PhotoGallery::PhotoGallery::Plugin::load_list_filters
 
+options:
+    fieldsets:
+        admin:
+            label: 'Administrative'
+    suppress_create_entry:
+        type: 'checkbox'
+        label: 'Blog Content Focus'
+        hint: 'Suppress the Create Entry button and menu items for this blog, and promote the Upload Photo button and menu items.'
+        tag: 'IfSuppressCreateEntry?'
+        default: 1
+        condition: PhotoGallery::Plugin::in_gallery
+        scope: blog
+        fieldset: admin
+
 template_sets:
   mid-century-photo-gallery:
     photo_gallery: 1
@@ -42,7 +56,7 @@ template_sets:
     author_name: Byrne Reese
     author_link: http://www.majordojo.com/
     paypal_email: byrne@majordojo.com
-   
+
     options:
       fieldsets:
         admin:
