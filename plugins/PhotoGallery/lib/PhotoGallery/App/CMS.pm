@@ -151,7 +151,7 @@ sub start_upload {
           {
             category_id       => $cat->id,
             category_label    => $cat->label,
-            category_selected => ( $cat->id == $q->param('category_id') ),
+            category_selected => ( $cat->id == ($q->param('category_id') || 0) ),
           };
     }
     @category_loop =
@@ -195,7 +195,7 @@ sub save_photo {
         $entry->authored_on( $q->param('publish_date') );
         $entry->created_on( $q->param('publish_date') );
     }
-    $entry->save();
+    $entry->save or die $entry->errstr;
 
     # TODO - trigger rebuild
     $app->rebuild_entry( Entry => $entry, BuildDependencies => 1 );
@@ -580,6 +580,7 @@ sub upload_photo {
     }
 
     $entry->save or die $entry->errstr;
+
     if (MT->version_number >= 4.3) {
         # this must be done because MT 4.3 no longer processes a form tag to associate
         # assets to posts
@@ -633,7 +634,7 @@ sub upload_photo {
     else {
         $arg{Height} = 200;
     }
-    my ( $url, $w, $h ) = $asset->thumbnail_url(%arg);
+    ( $url, $w, $h ) = $asset->thumbnail_url(%arg);
 
     my $tmpl = $app->load_tmpl('dialog/edit_photo.tmpl');
     $tmpl->param( blog_id        => $blog->id );

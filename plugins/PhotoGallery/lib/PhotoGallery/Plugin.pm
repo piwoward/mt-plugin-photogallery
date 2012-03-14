@@ -260,7 +260,7 @@ sub mode_manage {
         direction => 'descend',
     );
 
-    my %params = ( deleted => $q->param('deleted'), );
+    my %params = ( deleted => ($q->param('deleted') || 0), );
 
     my $plugin = MT->component('PhotoGallery');
 
