@@ -84,12 +84,19 @@ sub xfrm_header {
 
     # If the user has permission to post entries, show them the Upload Photo
     # button in place of the Write Entry button.
+    # We shouldn't use the #create-entry ID twice, but it seems to work just
+    # fine so let's go with it.
     if ($app->permissions->can_post) {
         $replacement = <<HTML;
 <li id="create-entry" class="nav-link">
     <a href="javascript:void(0);"
         onclick="return openDialog(false, 'PhotoGallery.start', 'blog_id=<mt:BlogID>')">
         <span>Upload Photo</span>
+    </a>
+</li>
+<li id="create-entry" class="nav-link">
+    <a href="<mt:Var name="script_uri">?__mode=PhotoGallery.start_batch&amp;blog_id=<mt:BlogID>">
+        <span>Batch Upload Photos</span>
     </a>
 </li>
 HTML
