@@ -124,8 +124,7 @@ navigating to Design > Theme Options:
 
 Screenshot of what a featured image on the front door looks like.
 
-[![Featured Image](http://www.majordojo.com/assets_c/2009/06/Picture 2-thumb-
-225x192-3139.png)](http://www.majordojo.com/2009/06/02/Picture%202.png)
+![Featured Image](http://www.majordojo.com/2009/06/02/Picture%202.png)
 
 To feature a photo on the front door simply add the tag `@featured` to the
 photo in question. This can be done one of two ways:
