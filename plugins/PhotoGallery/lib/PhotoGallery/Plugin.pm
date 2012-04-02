@@ -152,7 +152,15 @@ sub load_menus {
             order      => 100,
             dialog     => 'PhotoGallery.start',
             view       => "blog",
-            permission => 'create_post',
+            permission => 'create_post,upload',
+            condition  => sub { in_gallery },
+        },
+        'create:batch_photos' => {
+            label      => 'Batch Upload Photos',
+            order      => 101,
+            mode       => 'PhotoGallery.start_batch',
+            view       => "blog",
+            permission => 'create_post,upload',
             condition  => sub { in_gallery },
         },
         'manage:photo' => {

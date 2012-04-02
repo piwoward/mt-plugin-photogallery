@@ -13,21 +13,26 @@ config_types:
   photogallery:
     handler: $PhotoGallery::PhotoGallery::Plugin::type_galleries
 
-callbacks: 
+callbacks:
   MT::App::CMS::template_output.list_category: $PhotoGallery::PhotoGallery::Plugin::xfrm_categories
   MT::App::CMS::template_source.header:  $PhotoGallery::PhotoGallery::Plugin::xfrm_header
 
 applications:
   cms:
     methods:
-      PhotoGallery.start: $PhotoGallery::PhotoGallery::App::CMS::start_upload
+      PhotoGallery.start:        $PhotoGallery::PhotoGallery::App::CMS::start_upload
       PhotoGallery.upload_photo: $PhotoGallery::PhotoGallery::App::CMS::upload_photo
-      PhotoGallery.save_photo: $PhotoGallery::PhotoGallery::App::CMS::save_photo
-      PhotoGallery.upgrade: $PhotoGallery::PhotoGallery::App::CMS::upgrade
-      PhotoGallery.timestamps: $PhotoGallery::PhotoGallery::App::CMS::update_timestamps
-      PhotoGallery.photos: $PhotoGallery::PhotoGallery::Plugin::mode_manage
-      PhotoGallery.edit: $PhotoGallery::PhotoGallery::Plugin::mode_edit
-      PhotoGallery.delete: $PhotoGallery::PhotoGallery::Plugin::mode_delete
+      PhotoGallery.save_photo:   $PhotoGallery::PhotoGallery::App::CMS::save_photo
+      PhotoGallery.upgrade:      $PhotoGallery::PhotoGallery::App::CMS::upgrade
+      PhotoGallery.timestamps:   $PhotoGallery::PhotoGallery::App::CMS::update_timestamps
+      PhotoGallery.photos:       $PhotoGallery::PhotoGallery::Plugin::mode_manage
+      PhotoGallery.edit:         $PhotoGallery::PhotoGallery::Plugin::mode_edit
+      PhotoGallery.delete:       $PhotoGallery::PhotoGallery::Plugin::mode_delete
+      PhotoGallery.start_batch:  $PhotoGallery::PhotoGallery::App::CMS::start_batch
+      PhotoGallery.multi_upload: $PhotoGallery::PhotoGallery::App::CMS::multi_upload_photo
+      PhotoGallery.multi_save:   $PhotoGallery::PhotoGallery::App::CMS::multi_save
+      PhotoGallery.multi_repub:  $PhotoGallery::PhotoGallery::App::CMS::multi_republish
+      PhotoGallery.remove_photo: $PhotoGallery::PhotoGallery::App::CMS::ajax_remove_photo
     menus: $PhotoGallery::PhotoGallery::Plugin::load_menus
     list_filters: $PhotoGallery::PhotoGallery::Plugin::load_list_filters
 

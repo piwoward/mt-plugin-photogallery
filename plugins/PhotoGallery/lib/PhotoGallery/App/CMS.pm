@@ -1,13 +1,16 @@
 package PhotoGallery::App::CMS;
 
 use strict;
+use warnings;
 use base qw( MT::App );
-
+use MT::Asset;
 sub plugin { MT->component('PhotoGallery') }
 
 use MT::Util
   qw( format_ts encode_url dirify archive_file_for iso2ts ts2iso epoch2ts );
 use MT::ConfigMgr;
+
+use Data::Dumper;
 
 sub _read_info {
     my $asset = shift;
@@ -270,8 +273,8 @@ sub upload_photo {
     my $blog    = $app->blog;
     my $fmgr    = $blog->file_mgr;
 
-    # Determine filename of uploaded file. Automatically increment basename if previous
-    # one exists.
+    # Determine filename of uploaded file. Automatically increment basename 
+    #if previous one exists.
     my $i = 0;
     do {
         $basename = $q->param('file') || $q->param('fname');
@@ -676,6 +679,633 @@ sub upload_photo {
     #    $tmpl->param(middle_path   => $app->param('middle_path') || '');
     #    $tmpl->param(extra_path    => $app->param('extra_path') || '');
     return $app->build_page($tmpl);
+}
+
+# The user has chosen to Batch Upload Photos.
+sub start_batch {
+    my $app   = shift;
+    my $blog  = $app->blog;
+    my $q     = $app->query;
+    my $param = {};
+
+    return $app->show_error('Insufficient permissions to upload files or '
+        . 'create entries on this blog.')
+        if !$app->user->permissions->can_upload
+            || !$app->user->permissions->can_post
+            || !$app->user->permissions->can_administer;
+
+    # Populate the Photo Album (categories) dropdown picker.
+    my $iter = MT->model('category')->load_iter({ blog_id => $blog->id });
+    my @category_loop;
+    while ( my $cat = $iter->() ) {
+        push @category_loop,
+            {
+                category_id       => $cat->id,
+                category_label    => $cat->label,
+                category_selected => ( $cat->id == ($q->param('category_id') || 0) ),
+            };
+    }
+    
+    # Sort the categories alphabetically.
+    @category_loop =
+        sort { $a->{category_label} cmp $b->{category_label} } @category_loop;
+
+    $param->{category_loop}    = \@category_loop;
+    $param->{can_publish_post} = $app->permissions->can_publish_post;
+    $param->{status_default}   = $blog->status_default;
+
+    $app->load_tmpl('batch_upload.tmpl', $param);
+}
+
+# The Ajax call for the automatic multi-file upload process.
+sub multi_upload_photo {
+    my $app  = shift;
+    my $q    = $app->query;
+    my $blog = $app->blog;
+
+    return MT::Util::to_json({
+        status  => -1,
+        message => 'Insufficient permissions to upload files to this blog.',
+    })
+        if !$app->user->permissions->can_upload
+            || !$app->user->permissions->can_administer;
+
+    return MT::Util::to_json({
+        status  => -1,
+        message => "No blog specified in request? This shouldn't happen.",
+    })
+        if !$blog;
+
+    $app->validate_magic()
+        or return MT::Util::to_json({
+            status  => -1,
+            message => 'Invalid request.'
+        });
+
+    # Use the specified category ID to load that category. Or, if a new album
+    # is to be created we need to first check that it's indeed new before
+    # creating.
+    my $cat;
+    my $cat_is_new = 0;
+    my $cat_id = $q->param('category_id');
+
+    if ( $cat_id eq '__new' || $cat_id eq '' ) {
+        # Check if the category exists before trying to create it.
+        unless (
+            $cat = MT->model('category')->load({
+                label => $q->param('new_album_name') || 'Untitled',
+            })
+        ) {
+            # This album is definitely new, so let's create it.
+            $cat = MT->model('category')->new;
+            $cat->label( $q->param('new_album_name') || 'Untitled' );
+            $cat->blog_id( $blog->id );
+            $cat->save or die MT::Util::to_json({
+                status  => -1,
+                message => $cat->errstr,
+            });
+            $cat_is_new = 1; # Note that we just created this so it can be
+                             # reported to the user.
+        }
+    }
+    else {
+        $cat = MT->model('category')->load( $cat_id, { cached_ok => 1 } );
+    }
+
+    my @files = $q->param('files');
+
+    # The foreach should be unneeded because the fileupload jQuery plugin
+    # should always only submit one file at a time... right?
+    my ($file, $asset);
+    foreach $file (@files) {
+        $asset = _write_file({
+            app      => $app,
+            blog     => $blog,
+            category => $cat,
+            filename => $file,
+        });
+
+        require MT::FileMgr;
+        my $size = ( -s $asset->file_path );
+
+        return MT::Util::to_json({
+            status     => 1,
+            sort_order => $q->param('sort_order') || '0',
+            cat_label  => $cat->label,
+            cat_id     => $cat->id,
+            cat_is_new => $cat_is_new,
+            orig_name  => "$file", # If unquoted, throws an error.
+            asset_id   => $asset->id,
+            asset_name => $asset->label,
+            asset_url  => $asset->url,
+            asset_w    => $asset->image_width,
+            asset_h    => $asset->image_height,
+        });
+    }
+
+}
+
+# Write the file the user wants to upload.
+sub _write_file {
+    my ($arg_ref) = @_;
+    my $app      = $arg_ref->{app};
+    my $blog     = $arg_ref->{blog};
+    my $cat      = $arg_ref->{category};
+    my $filename = $arg_ref->{filename};
+
+    my ( $fh, $no_upload );
+    if ( $ENV{MOD_PERL} ) {
+        $fh = $filename->fh;
+    }
+    else {
+        $fh = $filename;
+    }
+
+    # Run the uploaded file through the DeniedAssetFileExtensions and
+    # AssetFileExtensions config directive options. We want to respect the
+    # admins preference here to not upload "bad" things.
+    if ( my $deny_exts = $app->config->DeniedAssetFileExtensions ) {
+        my @deny_exts = map {
+            if   ( $_ =~ m/^\./ ) {qr/$_/i}
+            else                  {qr/\.$_/i}
+        } split '\s?,\s?', $deny_exts;
+        my @ret = File::Basename::fileparse( $filename, @deny_exts );
+        if ( $ret[2] ) {
+            return $app->error(
+                $app->translate(
+                    'The file([_1]) you uploaded is not allowed.', $filename
+                )
+            );
+        }
+    }
+    if ( my $allow_exts = $app->config('AssetFileExtensions') ) {
+        my @allow_exts = map {
+            if   ( $_ =~ m/^\./ ) {qr/$_/i}
+            else                  {qr/\.$_/i}
+        } split '\s?,\s?', $allow_exts;
+        my @ret = File::Basename::fileparse( $filename, @allow_exts );
+        unless ( $ret[2] ) {
+            return $app->error(
+                $app->translate(
+                    'The file([_1]) you uploaded is not allowed.', $filename
+                )
+            );
+        }
+    }
+
+    # We need to ensure that the filename is "safe."
+    my ($basename, undef, $ext) 
+        = File::Basename::fileparse($filename, qr/\.[A-Za-z0-9]+$/);
+    if ( $basename =~ m!\.\.|\0|\|! ) {
+        return $app->error(
+            $app->translate( "Invalid filename '[_1]'", $basename ) );
+    }
+
+    require MT::FileMgr;
+    my $fmgr = MT::FileMgr->new( 'Local' );
+
+    # Set up the full path to the local file; this path could start at
+    # either the Local Site Path or Local Archive Path, and could include an
+    # extra directory or two in the middle.
+    my $root_path = $blog->site_path;
+    my $relative_path = archive_file_for( undef, $blog, 'Category', $cat );
+    $relative_path =~ s/\/[a-z\.]*$//;
+
+    my $relative_path_save = $relative_path;
+    my $path               = $root_path;
+    if ($relative_path) {
+        if ( $relative_path =~ m!\.\.|\0|\|! ) {
+            return $app->error(
+                $app->translate( "Invalid extra path '[_1]'", $relative_path )
+            );
+        }
+        $path = File::Spec->catdir( $path, $relative_path );
+        ## Untaint. We already checked for security holes in $relative_path.
+        ($path) = $path =~ /(.+)/s;
+        ## Build out the directory structure if it doesn't exist. DirUmask
+        ## determines the permissions of the new directories.
+        unless ( $fmgr->exists($path) ) {
+            $fmgr->mkpath($path)
+                or return $app->error(
+                    $app->translate(
+                        "Can't make path '[_1]': [_2]",
+                        $path, $fmgr->errstr
+                    )
+                );
+        }
+    }
+
+    # Ensure that we've got a unique file by incrementing the file's basename.
+    my ( $unique_id, $relative_url, $local_file, $asset_file,
+        $base_url, $asset_base_url );
+    my $i = 0;
+    do {
+        # Use $i and the $unique_id to ensure that we have a unique file name.
+        if ($i > 0) {
+            $unique_id = '_' . $i;
+        }
+        $i++;
+
+        # Reconstruct the filename, which includes the updated file count in
+        # the basename to make the filename unique.
+        $filename = $basename . $unique_id . $ext;
+
+        $relative_url =
+            File::Spec->catfile( $relative_path_save, encode_url($filename) );
+        $relative_path =
+            $relative_path_save
+            ? File::Spec->catfile( $relative_path_save, $filename )
+            : $filename;
+
+        $asset_file = ($blog->archive_path eq $blog->site_path)
+            ? '%r'
+            : '%a';
+        $asset_file = File::Spec->catfile( $asset_file, $relative_path );
+        $local_file = File::Spec->catfile( $path, $filename );
+
+        $base_url = ($blog->archive_path eq $blog->site_path)
+            ? $blog->site_url
+            : $blog->archive_url;
+        $asset_base_url = ($blog->archive_path eq $blog->site_path)
+            ? '%r'
+            : '%a';
+
+        # Untaint. We have already tested $basename and $relative_path for
+        # security issues above, and we have to assume that we can trust the
+        # user's Local Archive Path setting. So we should be safe.
+        ($local_file) = $local_file =~ /(.+)/s;
+    } while ( $fmgr->exists($local_file) );
+
+    # By incrementing the basename we've guaranteed a unique basename was
+    # found, so we can just write it now.
+    my $umask = oct $app->config('UploadUmask');
+    my $old   = umask($umask);
+    defined( my $bytes = $fmgr->put( $fh, $local_file, 'upload' ) )
+        or return $app->error(
+            $app->translate(
+                "Error writing upload to '[_1]': [_2]", $local_file,
+                $fmgr->errstr
+            )
+        );
+    umask($old);
+
+    # Use Image::Size to check if the uploaded file is an image, and if so,
+    # record additional image info (width, height). We first rewind the
+    # filehandle $fh, then pass it in to imgsize.
+    seek $fh, 0, 0;
+    eval { require Image::Size; };
+    return $app->error(
+        $app->translate(
+                "Perl module Image::Size is required to determine "
+              . "width and height of uploaded images."
+        )
+    ) if $@;
+    my ( $w, $h, $id ) = Image::Size::imgsize($fh);
+
+    ## Close up the filehandle.
+    close $fh;
+
+    my $url = $base_url;
+    $url .= '/' unless $url =~ m!/$!;
+    $url .= $relative_url;
+    my $asset_url = $asset_base_url . '/' . $relative_url;
+
+    # Create an asset with the uploaded photo.
+    my $asset = MT->model('asset.photo')->new();
+    $asset->label(      $filename      );
+    $asset->file_path(  $asset_file    );
+    $asset->file_name(  $filename      );
+    $asset->file_ext(   $ext           );
+    $asset->blog_id(    $blog->id      );
+    $asset->created_by( $app->user->id );
+    $asset->url(        $asset_url     );
+
+    if ( defined($w) && defined($h) ) {
+        eval { require MT::Image; MT::Image->new or die; };
+        $asset->image_width($w);
+        $asset->image_height($h);
+    }
+
+    my $original = $asset->clone;
+    $asset->save or die $asset->errstr;
+
+    $app->run_callbacks( 'cms_post_save.asset', $app, $asset, $original );
+
+    $app->run_callbacks(
+        'cms_upload_file.' . $asset->class,
+        File  => $local_file,
+        file  => $local_file,
+        Url   => $url,
+        url   => $url,
+        Size  => $bytes,
+        size  => $bytes,
+        Asset => $asset,
+        asset => $asset,
+        Type  => 'image',
+        type  => 'image',
+        Blog  => $blog,
+        blog  => $blog
+    );
+    $app->run_callbacks(
+        'cms_upload_image',
+        File       => $local_file,
+        file       => $local_file,
+        Url        => $url,
+        url        => $url,
+        Size       => $bytes,
+        size       => $bytes,
+        Asset      => $asset,
+        asset      => $asset,
+        Height     => $h,
+        height     => $h,
+        Width      => $w,
+        width      => $w,
+        Type       => 'image',
+        type       => 'image',
+        ImageType  => $id,
+        image_type => $id,
+        Blog       => $blog,
+        blog       => $blog
+    );
+
+    return $asset;
+}
+
+# The Ajax call to delete the uploaded photo. (Perhaps they selected the wrong
+# photo or realized it shouldn't be part of the selecte album or soemthing.)
+sub ajax_remove_photo {
+    my $app  = shift;
+    my $q    = $app->query;
+
+    return MT::Util::to_json({
+        status  => -1,
+        message => 'Insufficient permissions to upload files to this blog.',
+    })
+        if !$app->user->permissions->can_upload
+            || !$app->user->permissions->can_administer;
+
+    $app->validate_magic()
+        or return MT::Util::to_json({
+            status  => -1,
+            message => 'Invalid request.'
+        });
+
+    my $asset_id = $q->param('asset_id')
+        or return MT::Util::to_json({
+            status  => -1,
+            message => 'No asset ID specified!',
+        });
+
+    my $asset = MT->model('asset')->load({ id => $asset_id })
+        or return MT::Util::to_json({
+            status  => -1,
+            message => 'Error loading asset: ' . $app->errstr,
+        });
+
+    # $asset->remove will remove the asset record in the DB, as well as the
+    # uploaded file itself.
+    $asset->remove
+        or return MT::Util::to_json({
+            status  => -1,
+            message => 'Error deleting asset: ' . $asset->errstr,
+        });
+
+    MT::Util::to_json({
+        status  => 1,
+        message => 'Asset deleted.',
+    });
+}
+
+# Save the entries that the user has created with the batch upload tool. The
+# assets have already been uploaded/created, so we just need to use the asset
+# ID to create an objectasset association.
+sub multi_save {
+    my $app    = shift;
+    my $q      = $app->query;
+    my $param  = {};
+    my $author = $app->user;
+    my $blog   = $app->blog;
+
+    return MT::Util::to_json({
+        status  => -1,
+        message => 'Insufficient permissions to upload files to this blog.',
+    })
+        if !$app->user->permissions->can_upload
+            || !$app->user->permissions->can_post
+            || !$app->user->permissions->can_administer;
+
+    $app->validate_magic()
+        or return MT::Util::to_json({
+            status  => -1,
+            message => 'Invalid request.'
+        });
+
+    # Create a new entry for this photo.
+    #my $entry = MT->model('entry')->load( $q->param('entry_id') );
+    my $entry = MT->model('entry')->new();
+    $entry->title(          $q->param('title')            );
+    $entry->text(           $q->param('caption')          );
+    $entry->allow_comments( $blog->allow_comments_default );
+    $entry->allow_pings(    $blog->allow_pings_default    );
+    $entry->status(         $q->param('status')           );
+    $entry->author_id(      $author->id                   );
+    $entry->blog_id(        $blog->id                     );
+
+    my $cb = $author->text_format || $blog->convert_paras;
+    $cb = '__default__' if $cb eq '1';
+    $entry->convert_breaks($cb);
+
+
+    require MT::Tag;
+    my $tags      = $app->param('tags');
+    my $tag_delim = chr( $app->user->entry_prefs->{tag_delim} );
+    my @tags      = MT::Tag->split( $tag_delim, $tags );
+    if (@tags) {
+        $entry->set_tags( @tags );
+    }
+
+    $entry->save
+        or return MT::Util::to_json({
+            status  => -1,
+            message => 'Error saving entry: ' . $entry->errstr,
+        });
+
+    # Now that the entry is created/saved, set the category placement. Before
+    # setting the placement, let's verify that the category is valid, just to
+    # be safe.
+    my $cat = MT->model('category')->load( $q->param('cat_id') )
+        or return MT::Util::to_json({
+            status  => -1,
+            message => 'Album (category) ID ' . $q->param('cat_id') 
+                . ' could not be found.',
+        });
+
+    # Category exists, associate the entry and category with a placement record.
+    my $place = MT->model('placement')->new();
+    $place->entry_id(    $entry->id      );
+    $place->blog_id(     $entry->blog_id );
+    $place->is_primary(  1               );
+    $place->category_id( $cat->id        );
+    $place->save
+        or return MT::Util::to_json({
+            status  => -1,
+            message => 'Placement record associating ' . $cat->label
+                . '(' . $cat->id . ') with entry ' . $entry->title
+                . '(' . $entry->id . ') could not be saved.',
+        });
+
+    # And now move on to working with the asset. Verify the asset exists, and
+    # create an objectasset record to associate the asset and entry.
+    my $asset = MT->model('asset')->load( $q->param('asset_id') )
+        or return MT::Util::to_json({
+            status  => -1,
+            message => 'Asset ID ' . $q->param('asset_id') 
+                . ' could not be found.',
+        });
+
+    # Asset exists; create the objectasset record.
+    my $map = MT->model('objectasset')->new();
+    $map->blog_id(   $entry->blog_id );
+    $map->asset_id(  $asset->id      );
+    $map->object_ds( 'entry'         );
+    $map->object_id( $entry->id      );
+    $map->save
+        or return MT::Util::to_json({
+            status  => -1,
+            message => 'Objectasset record associating ' . $asset->label
+                . '(' . $asset->id . ') with entry ' . $entry->title
+                . '(' . $entry->id . ') could not be saved.',
+        });
+
+    # After an entry is saved we would normally republish. But, because we're
+    # saving many entries now we don't want to try to start republishing
+    # because we will almost definitely republish things needlessly, such as
+    # category archives (albums) and index templates. So, republishing is
+    # handled after all entries are saved.
+
+    # Successly saved!
+    return MT::Util::to_json({
+        status       => 1,
+        asset_id     => $asset->id,
+        entry_id     => $entry->id,
+        entry_status => $entry->status,
+    });
+}
+
+# After the batch entry save process is complete, all of the batched entries
+# are republished.
+sub multi_republish {
+    my $app     = shift;
+    my $q       = $app->query;
+    my $blog_id = $q->param('blog_id');
+    my $blog    = MT->model('blog')->load( $blog_id );
+
+    return MT::Util::to_json({
+        status  => -1,
+        message => 'Insufficient permissions to publish entries in this blog.',
+    })
+        if !$app->user->permissions->can_post
+            || !$app->user->permissions->can_administer;
+
+    $app->validate_magic()
+        or return MT::Util::to_json({
+            status  => -1,
+            message => 'Invalid request.'
+        });
+
+    my @entry_ids = split( /,/, $q->param('entry_ids') || '' )
+        or return MT::Util::to_json({
+            status  => 0,
+            message => 'No entries to publish.'
+        });
+
+    my @published_entries;
+
+    foreach my $entry_id (@entry_ids) {
+        # Load the entry with the supplied entry ID.
+        my $entry = MT->model('entry')->load( $entry_id )
+            or die MT::Util::to_json({
+                status  => -1,
+                message => 'Invalid entry ID '.$entry_id,
+            });
+
+        # Republish, but carefully to be sure we do just what's needed.
+        # * Need to republish all supplied entries.
+        # * Need to republish the previous entry to the first supplied entry.
+        # * Need to republish the next entry after the last supplied entry.
+        # * All supplied entries are in the same category (album), and
+        #   therefore only only need to republish the category archive once.
+        # * Dated archives that encompass all entries need to be republished.
+        #   We can cover this easily by publishing the dated archives of the
+        #   first and last supplied entry.
+        # * Need to republish all index templates.
+        # The BuildDependencies argument will cover all this before/after
+        # stuff: just use BuildDependecies for the first and last entry (but
+        # only those two) and we're done.
+        my $build_dependencies = 0;
+
+        # First entry in loop?
+        $build_dependencies = 1
+            if ( $entry_ids[0] == $entry_id );
+        # Last entry in loop?
+        $build_dependencies = 1
+            if ( $entry_ids[-1] == $entry_id );
+
+        $app->rebuild_entry(
+            Entry             => $entry,
+            BuildDependencies => $build_dependencies,
+        )
+            or die MT::Util::to_json({
+                status  => -1,
+                message => $app->handle_error(
+                    $app->translate( "Publish failed: [_1]", $app->errstr ) ),
+            });
+
+        # Note the entry permalink so that we can send it back to the user.
+        push @published_entries, {
+            entry_id  => $entry->id,
+            entry_url => $entry->permalink,
+        };
+    }
+
+    # Build the category archive link so that we can provide it to the user
+    # in the returned status. Grab the last entry ID to look up the category
+    # placement, so that we can load the category and get the category archive
+    # link's URL.
+    my $cat_archive_url;
+    if (@published_entries) {
+        my $published_entry = $published_entries[0];
+        my $placement = MT->model('placement')->load({
+            entry_id   => $published_entry->{entry_id},
+            is_primary => 1,
+        })
+            or return MT::Util::to_json({
+                status  => -1,
+                message => 'Could not load a category placement record for '
+                    . 'Entry ID '.$published_entry->{entry_id},
+            });
+
+        my $cat = MT->model('category')->load( $placement->category_id )
+            or return MT::Util::to_json({
+                status  => -1,
+                message => 'Album (category) ID ' . $placement->category_id
+                    . ' could not be found.',
+            });
+
+        $cat_archive_url  = $blog->archive_url;
+        $cat_archive_url .= '/' unless $cat_archive_url =~ m!/$!;
+        $cat_archive_url .= archive_file_for( undef, $blog, 'Category', $cat );
+        # MT->log("Building the archive URL for category " . $cat->label
+        #     . ". URL: " . $cat_archive_url );
+    }
+
+    # Send the status update back to the user so they can have the entry
+    # permalink and category archive link.
+    return MT::Util::to_json({
+        status               => 1,
+        category_archive_url => $cat_archive_url,
+        published_entries    => \@published_entries,
+    });
 }
 
 1;

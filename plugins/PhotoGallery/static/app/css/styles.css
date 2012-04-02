@@ -1,3 +1,5 @@
+/* Manage > Photos */
+
 .upgrade_results {
     width: 580px;
     height: 350px;
@@ -65,4 +67,183 @@
     margin: 0;
     overflow: auto;
     white-space: nowrap;
+}
+
+
+/* Batch Upload Photos */
+
+#processing { display: none; }
+
+/* By default hide the new album field. It's only needed if the user chooses
+   to create a new album, and jQuery will show it when needed. */
+#new-album-field { display: none; }
+
+#uploaded-files-status-field,
+#entry-save-status-field { display: none; }
+
+#uploaded-files-status p.error,
+#entry-save-status p.error { color: red; }
+
+#uploaded-files-status span.status,
+#entry-save-status span.status {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    vertical-align: bottom;
+    padding-left: 10px;
+}
+
+#uploaded-files-status p.upload span.status,
+#entry-save-status p.saving span.status,
+#entry-save-status p.publishing span.status {
+    background: url(../../../../../images/indicator.white.gif) right top no-repeat;
+}
+
+#uploaded-files-status p.upload-complete span.status,
+#entry-save-status p.saved span.status,
+#entry-save-status p.published span.status {
+    background: url(../../../../../images/status_icons/success.gif) 10px 4px no-repeat;
+}
+
+#uploaded-files-status p.upload span.remove {display: none; }
+#uploaded-files-status p.upload-complete span.remove {display: inline-block; }
+
+#uploaded-files-status p span.remove {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    vertical-align: bottom;
+    background: url(../../../../../images/status_icons/close.gif) center center no-repeat;
+    cursor: pointer;
+}
+
+#entry-save-status p a.view {
+    display: inline-block;
+    width: 16px;
+    height: 9px;
+    margin-left: 5px;
+    background: url(../../../../../images/status_icons/view.gif) center center no-repeat;
+}
+
+#entry-save-status p a.edit {
+    display: inline-block;
+    width: 16px;
+    height: 9px;
+    background: url(../../../../../images/status_icons/draft.gif) center center no-repeat;
+}
+
+#tabs {
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.ui-tabs-nav {
+    position: absolute;
+    top: 15px;
+    z-index: 2;
+}
+
+.ui-tabs-nav li {
+    position: relative;
+    clear: left;
+    width: 240px;
+    margin: 0 -1px 5px 0;
+    border: 1px solid #ccc;
+    border-bottom-width: 1px !important;
+    border-right-width: 0 !important;
+    -webkit-border-top-left-radius: 5px;
+    -webkit-border-bottom-left-radius: 5px;
+    -moz-border-radius-topleft: 5px;
+    -moz-border-radius-bottomleft: 5px;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    background: #fff url(../images/sortable.png) 7px center no-repeat;
+}
+
+.ui-tabs-nav li a {
+    display: block;
+    padding: 8px 15px 8px 40px;
+    width: 165px;
+    overflow: hidden;
+}
+
+.ui-tabs-nav li.ui-tabs-selected {
+    border-right-width: 1px;
+    background-color: #e7f0f6;
+}
+
+.ui-tabs .ui-tabs-panel.entry {
+    position: relative;
+    padding: 20px;
+    margin-left: 240px;
+    background-color: #e7f0f6;
+    border: 1px solid #ccc;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
+
+.ui-tabs-hide { display: none; }
+
+/*.entry div.dialog { display: none; }
+*/
+.entry h3 { 
+    margin: 0 0 15px 60px;
+}
+
+.ui-widget-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    opacity: .50;
+    filter:Alpha(Opacity=50);
+ }
+
+.ui-dialog {
+    background: #000;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    padding: 30px 10px 10px;
+}
+
+.ui-dialog-title {
+    color: #fff;
+    position: absolute;
+    left: 10px;
+    top: 10px;
+}
+
+.ui-dialog-titlebar-close {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}
+
+.ui-dialog-content {
+    overflow: auto;
+}
+
+ul.ui-tabs-nav span.preview {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: block;
+    width: 20px;
+    height: 20px;
+    overflow: hidden;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+form div.preview {
+    border: 1px solid #ccc;
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    overflow: hidden;
+    cursor: pointer;
 }

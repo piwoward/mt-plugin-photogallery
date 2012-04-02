@@ -1,0 +1,211 @@
+<mt:setvarblock name="page_title">Batch Upload Photos</mt:setvarblock>
+
+<mt:setvarblock name="html_head" append="1">
+    <script src="<mt:PluginStaticWebPath component="PhotoGallery">app/js/jquery-1.7.1.min.js" type="text/javascript"></script>
+    <script src="<mt:PluginStaticWebPath component="PhotoGallery">app/js/jquery-ui-1.8.18.custom.min.js" type="text/javascript"></script>
+    <script src="<mt:PluginStaticWebPath component="PhotoGallery">app/js/jQuery.evtpaginate.js" type="text/javascript"></script>
+    <script src="<mt:PluginStaticWebPath component="PhotoGallery">app/js/jquery.iframe-transport.js" type="text/javascript"></script>
+    <script src="<mt:PluginStaticWebPath component="PhotoGallery">app/js/jquery.fileupload.js" type="text/javascript"></script>
+    <script src="<mt:PluginStaticWebPath component="PhotoGallery">app/js/jquery.fileupload-ui.js" type="text/javascript"></script>
+    <script src="<mt:PluginStaticWebPath component="PhotoGallery">app/js/load-image.js" type="text/javascript"></script>
+    <script src="<mt:PluginStaticWebPath component="PhotoGallery">app/js/app.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="<mt:PluginStaticWebPath component="PhotoGallery">app/css/styles.css" type="text/css" />
+</mt:setvarblock>
+
+<mt:setvarblock name="system_msg">
+</mt:setvarblock>
+
+<mt:include name="include/header.tmpl">
+
+<div id="paginate">
+<div class="step">
+    <p><__trans phrase="Step 1 of 2"></p>
+
+    <p><__trans phrase="Upload many photos in a batch process to expand an existing Album or to quickly start a new one. Note that you may only work with <em>one</em> Album in an upload session. In this step, select the album to work with and the photos to be uploaded."></p>
+
+    <form method="post"
+        enctype="multipart/form-data"
+        action="<mt:var name="script_url">"
+        id="upload-form"
+        name="upload-form">
+        <input type="hidden" name="__mode" value="PhotoGallery.multi_upload" />
+        <input type="hidden" name="blog_id" value="<mt:Var name="blog_id">" />
+        <input type="hidden" name="magic_token" value="<mt:Var name="magic_token">" />
+
+        <mtapp:setting
+            id="category"
+            label="<__trans phrase="Select an Album">"
+            hint="<__trans phrase="Select an existing Photo Album, or choose &ldquo;New Album&rdquo; to create a new Photo Album. All photos uploaded in this batch will be part of the selected Photo Album.">"
+            show_hint="1">
+            <select name="category_id" id="album">
+                <option value=""><__trans phrase="Select..."></option>
+                <option value="__new"><__trans phrase="Create a New Album"></option>
+            <mt:Loop name="category_loop">
+                <option value="<mt:Var name="category_id">"
+                    <mt:If name="category_selected">selected</mt:If>>
+                    <mt:Var name="category_label">
+                </option>
+            </mt:Loop>
+            </select>
+        </mtapp:setting>
+
+        <mtapp:setting
+            id="new-album"
+            label="<__trans phrase="New Album Name">"
+            hint="<__trans phrase="Enter the name of the new Photo Album to be created.">"
+            show_hint="1">
+            <div class="textarea-wrapper">
+                <input type="text"
+                    name="new_album_name"
+                    id="new_album_name"
+                    class="full-width" />
+            </div>
+        </mtapp:setting>
+
+        <mtapp:setting
+            id="file"
+            label="<__trans phrase="Select Photos to Upload">"
+            hint="<__trans phrase="Select photos to upload. Drag and drop files here to add them. Alternatively, multiple-select files by using shift-click or alt/option-click.">"
+            show_hint="1">
+            <input type="file" name="files" id="fileupload" multiple />
+        </mtapp:setting>
+
+        <mtapp:setting
+            id="uploaded-files-status"
+            label="<__trans phrase="Photo Upload Status">">
+            <div id="uploaded-files-status"></div>
+        </mtapp:setting>
+    </form>
+</div>
+
+<div class="step">
+    <p><__trans phrase="Step 2 of 2"></p>
+
+    <p><__trans phrase="Edit the content of your uploaded photos. Click each tab to edit the contents; drag and drop tabs to order the photos in this album. After editing all photos, click Save Photos."></p>
+
+    <h2 id="photo-album-title"><__trans phrase="Photo Album">: <span></span></h2>
+
+    <div id="tabs">
+        <ul>
+            <mt:Ignore>
+                Navigation tabs to the entry panels will be built here with
+                jQuery based on the uploaded files.
+            </mt:Ignore>
+        </ul>
+
+            <mt:Ignore>
+                Entry panels will be built here with jQuery based on the
+                uploaded files.
+            </mt:Ignore>
+    </div>
+
+    <div id="previews">
+        <div id="tab-previews"></div>
+        <div id="panel-previews"></div>
+        <div id="dialog-previews"></div>
+    </div>
+
+    <mtapp:setting
+        id="entry-save-status"
+        label="<__trans phrase="Entry Save Status">">
+        <p id="entry-save-overview">Saving entries...</p>
+        <div id="entry-save-status"></div>
+    </mtapp:setting>
+
+</div>
+</div>
+
+<div class="actions-bar">
+    <div class="actions-bar-inner pkg actions">
+        <img src="<mt:StaticWebPath>images/indicator.white.gif"
+            width="16" height="16"
+            id="processing"
+            alt="processing..." />
+        <button
+            id="previous-step-button"
+            type="submit"
+            class="hidden"
+            accesskey="p"
+            title="Previous Step">Previous Step</button>
+        <button
+            id="next-step-button"
+            type="submit"
+            class="primary-button hidden"
+            accesskey="n"
+            title="Next Step">Next Step</button>
+        <button
+            id="save"
+            type="submit"
+            class="primary-button hidden"
+            accesskey="n"
+            title="Save Photos">Save Photos</button>
+        <button
+            id="create-another-album"
+            type="submit"
+            class="primary-button hidden"
+            accesskey="n"
+            onclick="window.location.href=CMSScriptURI+'?__mode=PhotoGallery.start_batch&blog_id=<mt:Var name="blog_id">';"
+            title="Create Another Album">Create Another Album</button>
+    </div>
+</div>
+
+<form method="post"
+    enctype="multipart/form-data"
+    action="<mt:var name="script_url">"
+    id="entry"
+    class="entry hidden">
+    <input type="hidden" name="__mode" value="PhotoGallery.multi_save" />
+    <input type="hidden" name="blog_id" value="<mt:Var name="blog_id">" />
+    <input type="hidden" name="magic_token" value="<mt:Var name="magic_token">" />
+
+    <div class="preview" title="Display a larger preview"></div>
+
+    <h3>
+        Filename.jpg
+    </h3>
+
+    <mtapp:setting
+        id="title"
+        label="<__trans phrase="Photo Title">">
+        <div class="textarea-wrapper">
+            <input type="text" name="title" class="full-width" />
+        </div>
+    </mtapp:setting>
+
+    <mtapp:setting
+        id="caption"
+        label="<__trans phrase="Caption">">
+        <div class="textarea-wrapper">
+            <textarea name="caption" rows="5" class="full-width"></textarea>
+        </div>
+    </mtapp:setting>
+
+    <mtapp:setting
+        id="tags"
+        label="<__trans phrase="Tags">">
+        <div class="textarea-wrapper">
+            <input type="text" name="tags" id="tags" class="full-width" mt:watch-change="1" autocomplete="0" />
+        </div>
+    </mtapp:setting>
+
+    <mtapp:setting
+        id="status"
+        label="<__trans phrase="Status">">
+        <mt:if name="can_publish_post">
+            <select name="status" class="">
+                <option value="1"<mt:if name="status_default" eq="1"> selected="selected"</mt:if>>
+                    <__trans phrase="Unpublished (Draft)"></option>
+                <option value="2"<mt:if name="status_default" eq="2"> selected="selected"</mt:if>>
+                    <__trans phrase="Published"></option>
+            </select>
+        <mt:else>
+            <input type="hidden" name="status" value="1" />
+            <span><__trans phrase="Unpublished"></span>
+        </mt:if>
+    </mtapp:setting>
+
+    <input type="hidden" name="asset_id" id="asset_id" value="" />
+    <input type="hidden" name="cat_id" id="cat_id" value="" />
+</form>
+
+<mt:include name="include/footer.tmpl">
