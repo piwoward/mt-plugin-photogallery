@@ -3,6 +3,8 @@ package PhotoGallery::Plugin;
 use strict;
 use MT::Util qw(relative_date);
 
+# A utility function used to determine if the current blog is using a photo
+# gallery theme.
 sub in_gallery {
     local $@;
     my $app = MT::App->instance;
@@ -12,8 +14,20 @@ sub in_gallery {
     return $app->registry('template_sets')->{$ts}->{'photo_gallery'};
 }
 
+# A utility function used to determine if the current blog is using a photo
+# gallery theme. This also requires that the suppress_create_entry checkbox
+# (in Plugin Settings) be checked to affect things.
 sub unless_gallery {
-    return !in_gallery();
+    my $app = MT::App->instance;
+    # Only proceed if this is a photo gallery blog and if the suppress option
+    # has been enabled.
+    return 0 if !$app->blog;
+    return 1
+        if !MT->component('PhotoGallery')->get_config_value(
+                'suppress_create_entry',
+                'blog:' . $app->blog->id 
+            )
+            || !in_gallery();
 }
 
 sub plugin {
@@ -58,7 +72,8 @@ sub type_galleries {
 sub xfrm_header {
     my ( $cb, $app, $html_ref ) = @_;
 
-    # Only proceed if this is a photo gallery blog.
+    # Only proceed if this is a photo gallery blog and if the suppress option
+    # has been enabled.
     return
       unless in_gallery()
           && plugin()
@@ -121,18 +136,16 @@ sub load_list_filters {
     return {};
 }
 
+# Modify the menu items in Photo Gallery blogs.
 sub load_menus {
+    # Remove StyleCatcher, just to prevent the user from hurting themself.
     my $sc = MT->component('StyleCatcher');
     delete $sc->{registry}->{applications}->{cms}->{menus};
+
     my $entry_order = in_gallery() ? 2200 : 1000;
     return {
         'create:entry' => {
-            condition => sub { 
-                my $blog = ( MT->instance->blog ? MT->instance->blog : undef );
-                return $blog && 
-                    in_gallery() && 
-                    !plugin()->get_config_value('suppress_create_entry', 'blog:' . $blog->id )
-            },
+            condition => sub { unless_gallery },
         },
         'create:photo' => {
             label      => 'Upload Photo',
