@@ -83,6 +83,36 @@
 
     <p><__trans phrase="Edit the content of your uploaded photos. Click each tab to edit the contents; drag and drop tabs to order the photos in this album. After editing all photos, click Save Photos."></p>
 
+    <div id="batch-edit-container">
+        <div class="batch-edit-options">
+            <p class="toggle open"><__trans phrase="Open Batch Editing Options"></p>
+        </div>
+        <div class="batch-edit-options opened" style="display: none;">
+            <p class="intro">
+                <__trans phrase="Use the Batch Editing Options to set the behavior of <em>all</em> Photos listed below.">
+            </p>
+
+            <mtapp:setting
+                id="batch-edit-publish-status"
+                label="<__trans phrase="Photo Publish Status">"
+                hint="<__trans phrase="Set the publish status of all photos in this batch.">"
+                show_hint="1">
+                <mt:if name="can_publish_post">
+                    <select id="batch-edit-publish-status">
+                        <option value="1"<mt:if name="status_default" eq="1"> selected="selected"</mt:if>>
+                            <__trans phrase="Unpublished (Draft)"></option>
+                        <option value="2"<mt:if name="status_default" eq="2"> selected="selected"</mt:if>>
+                            <__trans phrase="Published"></option>
+                    </select>
+                <mt:else>
+                    <p><__trans phrase="Photos will be saved unpublished; you don't have permission to publish on this blog."></p>
+                </mt:if>
+            </mtapp:setting>
+
+            <p class="toggle close"><__trans phrase="Close Batch Editing Options"></p>
+        </div>
+    </div>
+
     <h2 id="photo-album-title"><__trans phrase="Photo Album">: <span></span></h2>
 
     <div id="tabs">

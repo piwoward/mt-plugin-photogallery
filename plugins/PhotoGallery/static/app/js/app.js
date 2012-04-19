@@ -56,6 +56,14 @@ jQuery(document).ready(function($) {
         fail: fileuploadFail
     });
 
+    // Batch editing options
+    $('#batch-edit-container div.batch-edit-options p.toggle').click(function(){
+        $('#batch-edit-container div.batch-edit-options').slideToggle('fast');
+    });
+
+    $('select#batch-edit-publish-status').click(function(){
+        $('select[name="status"]').val( $(this).val() );
+    });
 });
 
 

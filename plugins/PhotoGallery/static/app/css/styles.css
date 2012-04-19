@@ -185,6 +185,44 @@
 
 .ui-tabs-hide { display: none; }
 
+.batch-edit-options p.intro {
+    color: #666;
+    font-weight: bold;
+    position: relative;
+    left: -20px;
+}
+
+.batch-edit-options p.toggle {
+    color: #3378aa;
+}
+
+.batch-edit-options.opened {
+    padding: 10px 10px 1px 30px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.batch-edit-options.opened {
+    background: #eaf3d8;
+}
+
+.batch-edit-options.opened p.toggle {
+    position: relative;
+    left: -20px;
+}
+
+.toggle.open {
+    background: url(../../../../../images/spinner-bottom.gif) 0px 4px no-repeat;
+    padding-left: 10px;
+}
+
+.toggle.close {
+    background: url(../../../../../images/spinner-top.gif) 0px 4px no-repeat;
+    padding-left: 10px;
+}
+
 /*.entry div.dialog { display: none; }
 */
 .entry h3 { 
