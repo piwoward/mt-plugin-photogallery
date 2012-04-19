@@ -146,11 +146,11 @@
 .ui-tabs-nav li {
     position: relative;
     clear: left;
-    width: 240px;
+    width: 239px;
     margin: 0 -1px 5px 0;
     border: 1px solid #ccc;
     border-bottom-width: 1px !important;
-    border-right-width: 0 !important;
+    border-right: 1px solid #ccc;
     -webkit-border-top-left-radius: 5px;
     -webkit-border-bottom-left-radius: 5px;
     -moz-border-radius-topleft: 5px;
@@ -168,7 +168,7 @@
 }
 
 .ui-tabs-nav li.ui-tabs-selected {
-    border-right-width: 1px;
+    border-right: 1px solid #e7f0f6;
     background-color: #e7f0f6;
 }
 
