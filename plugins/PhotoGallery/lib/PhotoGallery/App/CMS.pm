@@ -142,10 +142,17 @@ sub upgrade {
     return $app->build_page($tmpl);
 }
 
+# The popup dialog to add a photo to a gallery.
 sub start_upload {
     my $app  = shift;
     my $q    = $app->{query};
     my $blog = $app->blog;
+
+    # First, we *only* want to work in blogs that are photo gallery blogs.
+    my $set = $blog->template_set;
+    return $app->return_to_dashboard( redirect => 1 )
+        unless $app->registry('template_sets', $set, 'photo_gallery');
+
     my $tmpl = $app->load_tmpl('dialog/start.tmpl');
     my $iter = MT->model('category')->load_iter( { blog_id => $blog->id } );
     my @category_loop;
@@ -687,6 +694,11 @@ sub start_batch {
     my $blog  = $app->blog;
     my $q     = $app->query;
     my $param = {};
+
+    # First, we *only* want to work in blogs that are photo gallery blogs.
+    my $set = $blog->template_set;
+    return $app->return_to_dashboard( redirect => 1 )
+        unless $app->registry('template_sets', $set, 'photo_gallery');
 
     return $app->show_error('Insufficient permissions to upload files or '
         . 'create entries on this blog.')
