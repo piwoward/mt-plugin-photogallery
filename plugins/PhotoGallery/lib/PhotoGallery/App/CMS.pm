@@ -637,6 +637,11 @@ sub upload_photo {
         $place->remove;
     }
 
+    # Normally an "original object" ($orig_obj or $orig_entry) would be
+    # included with the callback, however since we know this is always a new
+    # entry this can be undef.
+    $app->run_callbacks( 'cms_post_save.entry', $app, $entry, undef );
+
     my %arg;
     if ( $asset->image_width > $asset->image_height ) {
         $arg{Width} = 200;
@@ -1127,7 +1132,6 @@ sub multi_save {
     $cb = '__default__' if $cb eq '1';
     $entry->convert_breaks($cb);
 
-
     require MT::Tag;
     my $tags      = $app->param('tags');
     my $tag_delim = chr( $app->user->entry_prefs->{tag_delim} );
@@ -1165,6 +1169,11 @@ sub multi_save {
                 . '(' . $cat->id . ') with entry ' . $entry->title
                 . '(' . $entry->id . ') could not be saved.',
         });
+
+    # Normally an "original object" ($orig_obj or $orig_entry) would be
+    # included with the callback, however since we know this is always a new
+    # entry this can be undef.
+    $app->run_callbacks( 'cms_post_save.entry', $app, $entry, undef );
 
     # And now move on to working with the asset. Verify the asset exists, and
     # create an objectasset record to associate the asset and entry.
