@@ -25,7 +25,7 @@ sub unless_gallery {
     return 1
         if !MT->component('PhotoGallery')->get_config_value(
                 'suppress_create_entry',
-                'blog:' . $app->blog->id 
+                'blog:' . $app->blog->id
             )
             || !in_gallery();
 }

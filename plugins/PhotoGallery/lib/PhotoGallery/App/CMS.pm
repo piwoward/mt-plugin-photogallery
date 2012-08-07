@@ -280,7 +280,7 @@ sub upload_photo {
     my $blog    = $app->blog;
     my $fmgr    = $blog->file_mgr;
 
-    # Determine filename of uploaded file. Automatically increment basename 
+    # Determine filename of uploaded file. Automatically increment basename
     #if previous one exists.
     my $i = 0;
     do {
@@ -295,15 +295,15 @@ sub upload_photo {
             return $app->error(
                 $app->translate( "Invalid filename '[_1]'", $basename ) );
         }
-        
+     
         ## Set up the full path to the local file; this path could start
         ## at either the Local Site Path or Local Archive Path, and could
         ## include an extra directory or two in the middle.
-        
+     
         $root_path = $blog->site_path;
         $relative_path = archive_file_for( undef, $blog, 'Category', $cat );
         $relative_path =~ s/\/[a-z\.]*$//;
-        
+     
         $relative_path_save = $relative_path;
         my $path            = $root_path;
         if ($relative_path) {
@@ -327,7 +327,7 @@ sub upload_photo {
                     );
             }
         }
-        
+     
         $relative_url =
             File::Spec->catfile( $relative_path, encode_url($basename) );
         $relative_path =
@@ -342,12 +342,12 @@ sub upload_photo {
             ? $blog->site_url
             : $blog->archive_url;
         $asset_base_url = $app->param('site_path') ? '%r' : '%a';
-        
+     
         ## Untaint. We have already tested $basename and $relative_path for
         ## security issues above, and we have to assume that we can trust the
         ## user's Local Archive Path setting. So we should be safe.
         ($local_file) = $local_file =~ /(.+)/s;
-        
+     
     } while ( $fmgr->exists($local_file) );
 
     ## If $local_file already exists, we try to write the upload to a
@@ -428,7 +428,7 @@ sub upload_photo {
               );
             my ( $vol, $path, $tmp ) = File::Spec->splitpath($tmp_file);
             return $app->build_page(
-                $plugin->load_tmpl('upload_confirm.tmpl'),
+                $plugin->load_tmpl('dialog/upload_confirm.tmpl'),
                 {
                     blog_id    => $blog->id,
                     blog_name  => $blog->name,
@@ -722,7 +722,7 @@ sub start_batch {
                 category_selected => ( $cat->id == ($q->param('category_id') || 0) ),
             };
     }
-    
+ 
     # Sort the categories alphabetically.
     @category_loop =
         sort { $a->{category_label} cmp $b->{category_label} } @category_loop;
@@ -871,7 +871,7 @@ sub _write_file {
     }
 
     # We need to ensure that the filename is "safe."
-    my ($basename, undef, $ext) 
+    my ($basename, undef, $ext)
         = File::Basename::fileparse($filename, qr/\.[A-Za-z0-9]+$/);
     if ( $basename =~ m!\.\.|\0|\|! ) {
         return $app->error(
@@ -1152,7 +1152,7 @@ sub multi_save {
     my $cat = MT->model('category')->load( $q->param('cat_id') )
         or return MT::Util::to_json({
             status  => -1,
-            message => 'Album (category) ID ' . $q->param('cat_id') 
+            message => 'Album (category) ID ' . $q->param('cat_id')
                 . ' could not be found.',
         });
 
@@ -1180,7 +1180,7 @@ sub multi_save {
     my $asset = MT->model('asset')->load( $q->param('asset_id') )
         or return MT::Util::to_json({
             status  => -1,
-            message => 'Asset ID ' . $q->param('asset_id') 
+            message => 'Asset ID ' . $q->param('asset_id')
                 . ' could not be found.',
         });
 

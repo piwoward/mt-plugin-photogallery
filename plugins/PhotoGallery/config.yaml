@@ -7,34 +7,34 @@ static_version: 3
 version: 2.6.3
 
 object_types:
-  asset.photo: 'MT::Asset::ImagePhoto'
+    asset.photo: 'MT::Asset::ImagePhoto'
 
 config_types:
   photogallery:
     handler: $PhotoGallery::PhotoGallery::Plugin::type_galleries
 
 callbacks:
-  MT::App::CMS::template_output.list_category: $PhotoGallery::PhotoGallery::Plugin::xfrm_categories
-  MT::App::CMS::template_source.header:  $PhotoGallery::PhotoGallery::Plugin::xfrm_header
+    MT::App::CMS::template_output.list_category: $PhotoGallery::PhotoGallery::Plugin::xfrm_categories
+    MT::App::CMS::template_source.header:  $PhotoGallery::PhotoGallery::Plugin::xfrm_header
 
 applications:
-  cms:
-    methods:
-      PhotoGallery.start:        $PhotoGallery::PhotoGallery::App::CMS::start_upload
-      PhotoGallery.upload_photo: $PhotoGallery::PhotoGallery::App::CMS::upload_photo
-      PhotoGallery.save_photo:   $PhotoGallery::PhotoGallery::App::CMS::save_photo
-      PhotoGallery.upgrade:      $PhotoGallery::PhotoGallery::App::CMS::upgrade
-      PhotoGallery.timestamps:   $PhotoGallery::PhotoGallery::App::CMS::update_timestamps
-      PhotoGallery.photos:       $PhotoGallery::PhotoGallery::Plugin::mode_manage
-      PhotoGallery.edit:         $PhotoGallery::PhotoGallery::Plugin::mode_edit
-      PhotoGallery.delete:       $PhotoGallery::PhotoGallery::Plugin::mode_delete
-      PhotoGallery.start_batch:  $PhotoGallery::PhotoGallery::App::CMS::start_batch
-      PhotoGallery.multi_upload: $PhotoGallery::PhotoGallery::App::CMS::multi_upload_photo
-      PhotoGallery.multi_save:   $PhotoGallery::PhotoGallery::App::CMS::multi_save
-      PhotoGallery.multi_repub:  $PhotoGallery::PhotoGallery::App::CMS::multi_republish
-      PhotoGallery.remove_photo: $PhotoGallery::PhotoGallery::App::CMS::ajax_remove_photo
-    menus: $PhotoGallery::PhotoGallery::Plugin::load_menus
-    list_filters: $PhotoGallery::PhotoGallery::Plugin::load_list_filters
+    cms:
+        methods:
+            PhotoGallery.start:        $PhotoGallery::PhotoGallery::App::CMS::start_upload
+            PhotoGallery.upload_photo: $PhotoGallery::PhotoGallery::App::CMS::upload_photo
+            PhotoGallery.save_photo:   $PhotoGallery::PhotoGallery::App::CMS::save_photo
+            PhotoGallery.upgrade:      $PhotoGallery::PhotoGallery::App::CMS::upgrade
+            PhotoGallery.timestamps:   $PhotoGallery::PhotoGallery::App::CMS::update_timestamps
+            PhotoGallery.photos:       $PhotoGallery::PhotoGallery::Plugin::mode_manage
+            PhotoGallery.edit:         $PhotoGallery::PhotoGallery::Plugin::mode_edit
+            PhotoGallery.delete:       $PhotoGallery::PhotoGallery::Plugin::mode_delete
+            PhotoGallery.start_batch:  $PhotoGallery::PhotoGallery::App::CMS::start_batch
+            PhotoGallery.multi_upload: $PhotoGallery::PhotoGallery::App::CMS::multi_upload_photo
+            PhotoGallery.multi_save:   $PhotoGallery::PhotoGallery::App::CMS::multi_save
+            PhotoGallery.multi_repub:  $PhotoGallery::PhotoGallery::App::CMS::multi_republish
+            PhotoGallery.remove_photo: $PhotoGallery::PhotoGallery::App::CMS::ajax_remove_photo
+        menus: $PhotoGallery::PhotoGallery::Plugin::load_menus
+        list_filters: $PhotoGallery::PhotoGallery::Plugin::load_list_filters
 
 options:
     fieldsets:
@@ -51,135 +51,133 @@ options:
         fieldset: admin
 
 template_sets:
-  mid-century-photo-gallery:
-    photo_gallery: 1
-    label: "Mid-Century Photo Gallery"
-    base_path: 'templates/mid-century'
-    order: 650
-    thumbnail: theme_thumb.png
-    preview: theme_preview.png
-    author_name: Byrne Reese
-    author_link: http://www.majordojo.com/
-    paypal_email: byrne@majordojo.com
+    mid-century-photo-gallery:
+        photo_gallery: 1
+        label: "Mid-Century Photo Gallery"
+        base_path: 'templates/mid-century'
+        order: 650
+        thumbnail: theme_thumb.png
+        preview: theme_preview.png
+        author_name: Byrne Reese
+        author_link: http://www.majordojo.com/
+        paypal_email: byrne@majordojo.com
 
-    options:
-      fieldsets:
-        admin:
-          label: "Administrativa"
-        display:
-          label: "Display Options"
-      suppress_create_entry:
-        type: 'checkbox'
-        label: 'Suppress Create Entry button and menu items for this blog?'
-        tag: 'IfSuppressCreateEntry?'
-        fieldset: admin
-      use_featured_photo:
-        type: checkbox
-        label: 'Use Featured Photo?'
-        hint: "For use only on Photo Galleries, this will turn on and off the featured photo on the main index."
-        tag: 'IfUseFeaturedPhotoOnIndex?'
-        fieldset: display
-      photo_layout:
-        type: select
-        values: "Grid,Blog"
-        label: 'Gallery Main Index Layout'
-        hint: "For use only on Photo Galleries, this will determine the layout to use on the main index."
-        tag: 'PhotoGalleryLayout'
-        default: 'Grid'
-        fieldset: display
-    templates:
-      index:
-        main_index:
-          label: 'Main Index'
-          outfile: 'index.html'
-          rebuild_me: 1
-        archive_index:
-          label: 'Archive Index'
-          outfile: 'archives.html'
-          rebuild_me: 1
-        styles:
-          label: 'Stylesheet'
-          outfile: 'styles.css'
-          rebuild_me: 1
-        javascript:
-          label: 'JavaScript'
-          outfile: 'javascript.js'
-          rebuild_me: 1
-        feed_recent:
-          label: 'Feed - Recent Entries'
-          outfile: 'atom.xml'
-          rebuild_me: 1
-        rsd:
-          label: 'RSD'
-          outfile: 'rsd.xml'
-          rebuild_me: 1
-      archive:
-        monthly_entry_listing:
-          label: 'Monthly Entry Listing'
-          mappings:
-            monthly:
-              archive_type: 'Monthly'
-        category_entry_listing:
-          label: 'Category Entry Listing'
-          mappings:
-            category:
-              archive_type: 'Category'
-      individual:
-        entry:
-          label: 'Entry'
-          mappings:
+        options:
+            fieldsets:
+                admin:
+                    label: "Administrativa"
+                display:
+                    label: "Display Options"
+            suppress_create_entry:
+                type: 'checkbox'
+                label: 'Suppress Create Entry button and menu items for this blog?'
+                tag: 'IfSuppressCreateEntry?'
+                fieldset: admin
+            use_featured_photo:
+                type: checkbox
+                label: 'Use Featured Photo?'
+                hint: "For use only on Photo Galleries, this will turn on and off the featured photo on the main index."
+                tag: 'IfUseFeaturedPhotoOnIndex?'
+                fieldset: display
+            photo_layout:
+                type: select
+                values: "Grid,Blog"
+                label: 'Gallery Main Index Layout'
+                hint: "For use only on Photo Galleries, this will determine the layout to use on the main index."
+                tag: 'PhotoGalleryLayout'
+                default: 'Grid'
+                fieldset: display
+        templates:
+            index:
+                main_index:
+                    label: 'Main Index'
+                    outfile: 'index.html'
+                    rebuild_me: 1
+                archive_index:
+                    label: 'Archive Index'
+                    outfile: 'archives.html'
+                    rebuild_me: 1
+                styles:
+                    label: 'Stylesheet'
+                    outfile: 'styles.css'
+                    rebuild_me: 1
+                javascript:
+                    label: 'JavaScript'
+                    outfile: 'javascript.js'
+                    rebuild_me: 1
+                feed_recent:
+                    label: 'Feed - Recent Entries'
+                    outfile: 'atom.xml'
+                    rebuild_me: 1
+                rsd:
+                    label: 'RSD'
+                    outfile: 'rsd.xml'
+                    rebuild_me: 1
+            archive:
+                monthly_entry_listing:
+                    label: 'Monthly Entry Listing'
+                    mappings:
+                        monthly:
+                            archive_type: 'Monthly'
+                category_entry_listing:
+                    label: 'Category Entry Listing'
+                    mappings:
+                        category:
+                            archive_type: 'Category'
             individual:
-              archive_type: 'Individual'
-              preferred: 1
-        page:
-          label: 'Page'
-          mappings:
-            page:
-              archive_type: 'Page'
-              preferred: 1
-      module:
-        photo_macro:
-          label: 'Photo Macro'
-        about_me:
-          label: 'About Me'
-        banner_footer:
-          label: 'Banner Footer'
-        banner_header:
-          label: 'Banner Header'
-        albums:
-          label: 'Albums'
-        entry_summary:
-          label: 'Entry Summary'
-        html_head:
-          label: 'HTML Head'
-        individual_comment:
-          label: 'Individual Comment'
-        sidebar:
-          label: 'Sidebar'
-        comments:
-          label: 'Comments'
-        gallery:
-          label: 'Gallery'
-        monthly:
-          label: 'Monthly'
-        recent_comments:
-          label: 'Recent Comments'
-        recent_entries:
-          label: 'Recent Entries'
-        trackbacks:
-          label: 'Trackbacks'
-        userpic:
-          label: 'Userpic'
-      system:
-        comment_preview:
-          label: 'Comment Preview'
-        comment_response:
-          label: 'Comment Response'
-        dynamic_error:
-          label: 'Dynamic Error'
-        popup_image:
-          label: 'Popup Image'
-        search_results:
-          label: 'Search Results'
-
-
+                entry:
+                    label: 'Entry'
+                    mappings:
+                        individual:
+                            archive_type: 'Individual'
+                            preferred: 1
+                page:
+                    label: 'Page'
+                    mappings:
+                        page:
+                            archive_type: 'Page'
+                            preferred: 1
+            module:
+                photo_macro:
+                    label: 'Photo Macro'
+                about_me:
+                    label: 'About Me'
+                banner_footer:
+                    label: 'Banner Footer'
+                banner_header:
+                    label: 'Banner Header'
+                albums:
+                    label: 'Albums'
+                entry_summary:
+                    label: 'Entry Summary'
+                html_head:
+                    label: 'HTML Head'
+                individual_comment:
+                    label: 'Individual Comment'
+                sidebar:
+                    label: 'Sidebar'
+                comments:
+                    label: 'Comments'
+                gallery:
+                    label: 'Gallery'
+                monthly:
+                    label: 'Monthly'
+                recent_comments:
+                    label: 'Recent Comments'
+                recent_entries:
+                    label: 'Recent Entries'
+                trackbacks:
+                    label: 'Trackbacks'
+                userpic:
+                    label: 'Userpic'
+            system:
+                comment_preview:
+                    label: 'Comment Preview'
+                comment_response:
+                    label: 'Comment Response'
+                dynamic_error:
+                    label: 'Dynamic Error'
+                popup_image:
+                    label: 'Popup Image'
+                search_results:
+                    label: 'Search Results'
