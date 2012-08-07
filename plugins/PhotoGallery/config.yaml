@@ -3,9 +3,9 @@ name: 'Photo Gallery'
 description: 'The Photo Gallery plugin allows users to easily create photo galleries and to upload photos to them.'
 author_name: 'Byrne Reese'
 author_link: 'http://www.majordojo.com/'
-static_version: 3
 plugin_link: 'https://github.com/endevver/mt-plugin-photogallery'
-version: 2.6.3
+static_version: 4
+version: 2.6.4
 
 object_types:
     asset.photo: 'MT::Asset::ImagePhoto'
