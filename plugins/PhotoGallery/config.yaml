@@ -4,6 +4,7 @@ description: 'The Photo Gallery plugin allows users to easily create photo galle
 author_name: 'Byrne Reese'
 author_link: 'http://www.majordojo.com/'
 static_version: 3
+plugin_link: 'https://github.com/endevver/mt-plugin-photogallery'
 version: 2.6.3
 
 object_types:
