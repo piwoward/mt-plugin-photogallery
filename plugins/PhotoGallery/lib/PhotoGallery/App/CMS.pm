@@ -67,7 +67,7 @@ sub update_timestamps {
                         if ($date) {
                             $date =~ s/[: ]//g;
                             $e->created_on($date);
-                            $e->save;
+                            $e->save or die $e->errstr;
                         }
                     }
                 }
@@ -244,7 +244,7 @@ sub upload_photo {
         $cat = MT->model('category')->new;
         $cat->label($cat_name);
         $cat->blog_id( $app->blog->id );
-        $cat->save;
+        $cat->save or die $cat->errstr;
     }
     else {
         $cat = MT->model('category')->load( $cat_id, { cached_ok => 1 } );
@@ -524,7 +524,7 @@ sub upload_photo {
     $asset->image_width($w);
     $asset->image_height($h);
     $asset->mime_type($mimetype) if $mimetype;
-    $asset->save;
+    $asset->save or die $asset->errstr;
     $app->run_callbacks( 'cms_post_save.asset', $app, $asset, $original );
 
     $app->run_callbacks(
@@ -599,7 +599,7 @@ sub upload_photo {
         $map->asset_id($asset->id);
         $map->object_ds('entry');
         $map->object_id($entry->id);
-        $map->save;
+        $map->save or die $map->errstr;
     }
 
     if ( $q->param('is_favorite') ) { $entry->add_tags( ['@favorite'] ); }
@@ -618,7 +618,7 @@ sub upload_photo {
             $place->is_primary(1);
         }
         $place->category_id( $cat->id );
-        $place->save;
+        $place->save or die $place->errstr;
     }
     else {
         if ($place) {
