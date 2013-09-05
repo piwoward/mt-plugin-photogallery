@@ -48,8 +48,9 @@ sub welcome { shift->build_page('xp/welcome.tmpl') }
 
 sub ready {
     my $app    = shift;
+    my $q      = $app->can('query') ? $app->query : $app->param;
     my $user   = $app->{user};
-    my $set_id = $app->{query}->param('set_id') || 0;
+    my $set_id = $q->param('set_id') || 0;
     my $iter   = MT::Gallery::Set->load_iter( { user_id => $user->id } );
     my @sets;
     while ( my $set = $iter->() ) {
@@ -74,7 +75,7 @@ sub create_album {
     my $user = $app->{user};
     my $fmgr = $user->file_mgr or return $app->error( $user->errstr );
 
-    my $q = $app->{query};
+    my $q = $app->can('query') ? $app->query : $app->param;
     my $name = $q->param('set_name') or return $app->error('No set_name');
 
     my $set = MT::Gallery::Set->new;
@@ -124,7 +125,7 @@ sub upload {
 
     my $fmgr = $user->file_mgr or return $app->error( $user->errstr );
 
-    my $q      = $app->{query};
+    my $q = $app->can('query') ? $app->query : $app->param;
     my $set_id = $q->param('set_id')
       or return $app->error('No set_id');
     my $set = MT::Gallery::Set->load($set_id);

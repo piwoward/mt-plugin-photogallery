@@ -31,7 +31,7 @@ sub _read_info {
 
 sub update_timestamps {
     my $app  = shift;
-    my $q    = $app->{query};
+    my $q    = $app->can('query') ? $app->query : $app->param;
     my $blog = $app->blog;
     my $text;
     eval 'require Image::ExifTool';
@@ -82,7 +82,7 @@ sub update_timestamps {
 
 sub upgrade {
     my $app  = shift;
-    my $q    = $app->{query};
+    my $q    = $app->can('query') ? $app->query : $app->param;
     my $blog = $app->blog;
     my $text = '';
 
@@ -145,7 +145,7 @@ sub upgrade {
 # The popup dialog to add a photo to a gallery.
 sub start_upload {
     my $app  = shift;
-    my $q    = $app->{query};
+    my $q    = $app->can('query') ? $app->query : $app->param;
     my $blog = $app->blog;
 
     # First, we *only* want to work in blogs that are photo gallery blogs.
@@ -176,7 +176,7 @@ sub start_upload {
 sub save_photo {
     my $app = shift;
 
-    my $q = $app->{query};
+    my $q = $app->can('query') ? $app->query : $app->param;
 
     my $asset = MT->model('asset.photo')->load( $q->param('asset_id') );
 
@@ -216,7 +216,7 @@ sub save_photo {
 sub upload_photo {
     my $app    = shift;
     my $plugin = $app->instance;
-    my $q      = $app->{query};
+    my $q      = $app->can('query') ? $app->query : $app->param;
 
     # Indicates to overwrite any duplicate files with the same name
     # Note: these should only be turned on if the file has previously
@@ -697,7 +697,7 @@ sub upload_photo {
 sub start_batch {
     my $app   = shift;
     my $blog  = $app->blog;
-    my $q     = $app->query;
+    my $q     = $app->can('query') ? $app->query : $app->param;
     my $param = {};
 
     # First, we *only* want to work in blogs that are photo gallery blogs.
@@ -737,7 +737,7 @@ sub start_batch {
 # The Ajax call for the automatic multi-file upload process.
 sub multi_upload_photo {
     my $app  = shift;
-    my $q    = $app->query;
+    my $q    = $app->can('query') ? $app->query : $app->param;
     my $blog = $app->blog;
 
     return MT::Util::to_json({
@@ -1051,8 +1051,8 @@ sub _write_file {
 # The Ajax call to delete the uploaded photo. (Perhaps they selected the wrong
 # photo or realized it shouldn't be part of the selecte album or soemthing.)
 sub ajax_remove_photo {
-    my $app  = shift;
-    my $q    = $app->query;
+    my $app = shift;
+    my $q   = $app->can('query') ? $app->query : $app->param;
 
     return MT::Util::to_json({
         status  => -1,
@@ -1098,7 +1098,7 @@ sub ajax_remove_photo {
 # ID to create an objectasset association.
 sub multi_save {
     my $app    = shift;
-    my $q      = $app->query;
+    my $q      = $app->can('query') ? $app->query : $app->param;
     my $param  = {};
     my $author = $app->user;
     my $blog   = $app->blog;
@@ -1217,7 +1217,7 @@ sub multi_save {
 # are republished.
 sub multi_republish {
     my $app     = shift;
-    my $q       = $app->query;
+    my $q       = $app->can('query') ? $app->query : $app->param;
     my $blog_id = $q->param('blog_id');
     my $blog    = MT->model('blog')->load( $blog_id );
 

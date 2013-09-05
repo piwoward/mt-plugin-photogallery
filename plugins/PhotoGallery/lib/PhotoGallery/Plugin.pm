@@ -228,7 +228,7 @@ sub mode_delete {
 sub mode_edit {
     my $app   = shift;
     my %param = @_;
-    my $q     = $app->{query};
+    my $q     = $app->can('query') ? $app->query : $app->param;
 
     my $obj   = MT->model('entry')->load( $q->param('id') );
     my $asset = load_asset_from_entry($obj);
@@ -263,7 +263,7 @@ sub mode_edit {
 
 sub mode_manage {
     my $app   = shift;
-    my $q     = $app->{query};
+    my $q     = $app->can('query') ? $app->query : $app->param;
     my %param = @_;
 
     if ( !in_gallery() ) {
