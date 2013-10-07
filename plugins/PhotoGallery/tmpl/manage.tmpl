@@ -101,9 +101,9 @@
             <mt:Var name="title">
         </a>
     <mt:else>
-        <a href="javascript:void(0)"
-            onclick="editPhoto(<mt:Var name="photo_id">, <mt:Var name="blog_id">); return false;"
-            title="<mt:Var name="title" escape="html">">
+        <a href="<mt:Var name="script_url">?__mode=PhotoGallery.edit&amp;id=<mt:Var name="photo_id">&amp;blog_id=<mt:Var name="blog_id">"
+            title="<mt:Var name="title" escape="html">"
+            class="mt-open-dialog">
             <mt:Var name="title">
         </a>
     </mt:if>

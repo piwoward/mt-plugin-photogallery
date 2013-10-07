@@ -2,19 +2,20 @@
 
 The Photo Gallery Plugin for Movable Type contains two components:
 
+* A streamlined interface to make managing, editing, and uploading to a photo
+  gallery-style blog efficient. This updated interface can be used by any
+  theme.
+
 * A photo gallery theme based upon the amazing design work of [Jim
   Ramsey](http://www.jimramsey.net/). It is designed to be a seamless
   extension of his popular Movable Type theme called
   [Mid-Century](http://www.movabletype.org/2008/08/another_hallmark_design_for_movable_type.html).
 
-* A streamlined interface to make managing, editing, and uploading to a photo
-  gallery-style blog efficient. This updated interface can be used by any
-  theme.
-
 
 # Prerequisites
 
-* [Config Assistant](https://github.com/openmelody/mt-plugin-configassistant)
+* Movable Type 5+
+* [Config Assistant](https://github.com/openmelody/mt-plugin-configassistant/releases)
 
 Additionally, if you want to use the included Mid-Century Photo Gallery theme,
 the following are required:
@@ -104,9 +105,14 @@ appears next to the file name.
 
 Once all photos have been uploaded, click the Next Step button.
 
-In step two, edit photo tiles, captions, and tags for all of the photos you have uploaded. In this vertically-tabbed interface, click each tab to work with the photo thumbnail you see, and drag-n-drop each tab to order photos in the photo album.
+In step two, edit photo tiles, captions, and tags for all of the photos you have
+uploaded. In this vertically-tabbed interface, click each tab to work with the
+photo thumbnail you see, and drag-n-drop each tab to order photos in the photo
+album.
 
-After all photo's have been updated, click Save Photos. The status area will note saving and publishing progress, and finally present you with links to edit and view the album contents.
+After all photo's have been updated, click Save Photos. The status area will
+note saving and publishing progress, and finally present you with links to edit
+and view the album contents.
 
 
 ## Configuring the Mid-Century Photo Gallery Theme
@@ -117,7 +123,8 @@ One can easily switch between the following layouts for their front door by
 navigating to Design > Theme Options:
 
   * Grid - display a block of thumbnails
-  * Blog - display a list of reverse chronologically sorted blog entries with medium sized thumbnails.
+  * Blog - display a list of reverse chronologically sorted blog entries with
+  medium sized thumbnails.
 
 ### Featuring a Photo on the Front Door
 

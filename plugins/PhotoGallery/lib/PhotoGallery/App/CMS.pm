@@ -144,16 +144,17 @@ sub upgrade {
 
 # The popup dialog to add a photo to a gallery.
 sub start_upload {
-    my $app  = shift;
-    my $q    = $app->can('query') ? $app->query : $app->param;
-    my $blog = $app->blog;
+    my ($app) = shift;
+    my $q     = $app->can('query') ? $app->query : $app->param;
+    my $blog  = $app->blog;
 
     # First, we *only* want to work in blogs that are photo gallery blogs.
     my $set = $blog->template_set;
     return $app->return_to_dashboard( redirect => 1 )
         unless $app->registry('template_sets', $set, 'photo_gallery');
 
-    my $tmpl = $app->load_tmpl('dialog/start.tmpl');
+    my $tmpl = $app->component('PhotoGallery')->load_tmpl('dialog/start.tmpl');
+
     my $iter = MT->model('category')->load_iter( { blog_id => $blog->id } );
     my @category_loop;
     while ( my $cat = $iter->() ) {
@@ -736,7 +737,7 @@ sub start_batch {
 
 # The Ajax call for the automatic multi-file upload process.
 sub multi_upload_photo {
-    my $app  = shift;
+    my ($app)  = shift;
     my $q    = $app->can('query') ? $app->query : $app->param;
     my $blog = $app->blog;
 
@@ -801,9 +802,6 @@ sub multi_upload_photo {
             category => $cat,
             filename => $file,
         });
-
-        require MT::FileMgr;
-        my $size = ( -s $asset->file_path );
 
         return MT::Util::to_json({
             status     => 1,
@@ -992,6 +990,7 @@ sub _write_file {
     $asset->label(      $filename      );
     $asset->file_path(  $asset_file    );
     $asset->file_name(  $filename      );
+    $ext =~ s/^\.//;
     $asset->file_ext(   $ext           );
     $asset->blog_id(    $blog->id      );
     $asset->created_by( $app->user->id );

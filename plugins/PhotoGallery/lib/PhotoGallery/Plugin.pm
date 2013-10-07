@@ -154,42 +154,40 @@ sub load_menus {
         'create:entry' => {
             condition => sub { unless_gallery },
         },
-        'create:photo' => {
-            label      => 'Upload Photo',
-            order      => 100,
-            dialog     => 'PhotoGallery.start',
-            view       => "blog",
-            permission => 'create_post,upload',
-            condition  => sub { in_gallery },
+        'photogallery' => {
+            label     => 'Photo Gallery',
+            order     => 100,
+            view      => 'blog',
+            condition => sub { in_gallery },
         },
-        'create:batch_photos' => {
-            label      => 'Batch Upload Photos',
-            order      => 101,
+        'photogallery:batch_upload' => {
+            label      => 'Upload Photos',
+            order      => 200,
             mode       => 'PhotoGallery.start_batch',
             view       => "blog",
             permission => 'create_post,upload',
             condition  => sub { in_gallery },
         },
-        'manage:photo' => {
-            label => "Photos",
+        'photogallery:photos' => {
+            label => "Uploaded Photos",
             mode  => 'PhotoGallery.photos',
-            order => 100,
+            order => 300,
             condition => sub { in_gallery },
         },
-        'manage:albums' => {
+        'photogallery:albums' => {
             label      => "Albums",
-            mode       => 'list_cat',
-            order      => 6000,
+            mode       => 'list',
+            args       => {
+                _type => 'category',
+            },
+            order      => 400,
             permission => 'edit_categories',
             view       => "blog",
-            condition => sub { in_gallery },
+            condition  => sub { in_gallery },
         },
-        'manage:category' => { condition => sub { unless_gallery } },
-        'manage:entry'  => { order => $entry_order, },
-        'manage:ping'   => { condition => sub { unless_gallery } },
-        'manage:asset'  => { condition => sub { unless_gallery } },
-        'manage:page'   => { condition => sub { unless_gallery } },
-        'manage:folder' => { condition => sub { unless_gallery } },
+        'entry'         => { condition => sub { unless_gallery } },
+        'asset'         => { condition => sub { unless_gallery } },
+        'feedback:ping' => { condition => sub { unless_gallery } },
     };
 }
 

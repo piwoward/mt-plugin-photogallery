@@ -8,8 +8,11 @@ package MT::Asset::ImagePhoto;
 
 use strict;
 use base qw( MT::Asset::Image );
+use MT::Blog;
+use MT::Website;
 
-__PACKAGE__->install_properties( { class_type => 'photo', } );
+__PACKAGE__->install_properties(
+    { class_type => 'photo', child_of => [ 'MT::Blog', 'MT::Website' ] } );
 
 sub class_label        { MT->translate('Photo'); }
 sub class_label_plural { MT->translate('Photos'); }
@@ -29,7 +32,7 @@ sub insert_options {
     $param->{html_head} =
         '<link rel="stylesheet" href="'
       . $app->static_path
-      . 'plugins/PhotoGallery/styles/app.css" type="text/css" />';
+      . 'plugins/photogallery/styles/app.css" type="text/css" />';
 
     return $app->build_page(
         '../plugins/PhotoGallery/tmpl/dialog/asset_options.tmpl', $param );

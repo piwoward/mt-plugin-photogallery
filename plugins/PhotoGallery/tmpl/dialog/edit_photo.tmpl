@@ -80,7 +80,7 @@
     
     //-->
     </script>
-    <link rel="stylesheet" href="<mt:StaticWebPath>plugins/PhotoGallery/app/styles.css" type="text/css" />
+    <link rel="stylesheet" href="<mt:StaticWebPath>/support/plugins/photogallery/app/css/styles.css" type="text/css" />
 </mt:setvarblock>
 <mt:include name="dialog/header.tmpl">
 <form action="<mt:var name="script_url">" method="post">
@@ -122,21 +122,21 @@
         label_class="top-label"
         label="<__trans phrase="Photo Title">">
             <div class="textarea-wrapper">
-                <input type="text" name="label" value="<mt:var name="fname" escape="html">" class="full-width">
+                <input type="text" name="label" value="<mt:var name="fname" escape="html">" class="title full full-width">
             </div>
     </mtapp:setting>
     <mtapp:setting
         id="file_desc"
         label_class="top-label"
         label="<__trans phrase="Caption">">
-            <textarea name="caption" cols="" rows="" class="full-width short"><mt:var name="caption"></textarea>
+            <textarea name="caption" cols="" rows="" class="full text low full-width short"><mt:var name="caption"></textarea>
     </mtapp:setting>
     <mtapp:setting
         id="file_tags"
         label_class="top-label"
         label="<__trans phrase="Tags">">
             <div class="textarea-wrapper">
-                <input type="text" name="tags" id="tags" class="full-width" value="<mt:var name="tags">" mt:watch-change="1" autocomplete="0" />
+                <input type="text" name="tags" id="tags" class="full full-width" value="<mt:var name="tags">" mt:watch-change="1" autocomplete="0" />
             </div>
     </mtapp:setting>
         </div>
@@ -194,12 +194,12 @@
                 type="submit"
                 accesskey="x"
                 title="<__trans phrase="Save (x)">"
-                class="primary-button"
+                class="primary action button primary-button"
                 ><__trans phrase="Save"></button>
             <button
                 type="submit"
                 accesskey="x"
-                class="cancel"
+                class="mt-close-dialog action button cancel"
                 title="<__trans phrase="Cancel (x)">"
                 ><__trans phrase="Cancel"></button>
 <mt:else>
@@ -208,12 +208,13 @@
                 type="submit"
                 accesskey="x"
                 title="<__trans phrase="Finish (x)">"
-                class="primary-button"
+                class="primary action button primary-button"
                 ><__trans phrase="Finish"></button>
             <button
                 type="submit"
                 accesskey="x"
                 title="<__trans phrase="Upload Another (s)">"
+                class="action button"
                 ><__trans phrase="Upload Another"></button>
 </mt:if>
         </div>

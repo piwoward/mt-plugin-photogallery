@@ -2,6 +2,7 @@
 // used to build the tabbed editing interface.
 var saved_assets = new Array();
 var to_republish = new Array();
+var jqXHR;
 
 jQuery(document).ready(function($) {
     // Hide and show the appropriate buttons
@@ -42,7 +43,7 @@ jQuery(document).ready(function($) {
         }
     });
 
-    $('#upload-form').fileupload({
+    jqXHR = $('#upload-form').fileupload({
         url: CMSScriptURI,
         dataType: 'json',
         dropZone: $('#file-field'),
@@ -70,10 +71,20 @@ jQuery(document).ready(function($) {
 // Part of the file upload process -- the Add callback. This is responsible
 // for adding the file to the status line and submitting the file for upload.
 function fileuploadAdd (e, data) {
+    // Before starting the upload be sure that an album has been selected.
+    if ( jQuery('select#album').val() == '' ) {
+        alert('An album must be selected (or created) before starting an upload.');
+        return false;
+    }
+
+    // "Lock" the album picker fields so that a different album can't be
+    // selected mid-upload.
+    jQuery('select#album, input#new_album_name').prop('disabled', true);
+
     // Add the uploaded file to the Photo Upload Progress area.
-    $('#uploaded-files-status-field').show();
-    $.each(data.files, function (index, file) {
-        $('<p/>')
+    jQuery('#uploaded-files-status-field').show();
+    jQuery.each(data.files, function (index, file) {
+        jQuery('<p/>')
             .fadeIn('slow')
             .addClass('file upload')
             .html( '<span class="filename">' + file.name
@@ -95,12 +106,12 @@ function fileuploadDone (e, data) {
     // successfully written to the server.
     if ( data.result.status == -1 ) {
         // Fatal error! Misconfiguration?
-        if ( $('#uploaded-files-status p.error').length ) {
-            $('#uploaded-files-status p.error')
+        if ( jQuery('#uploaded-files-status p.error').length ) {
+            jQuery('#uploaded-files-status p.error')
                 .text( data.result.message );
         }
         else {
-            $('<p/>')
+            jQuery('<p/>')
                 .addClass('error')
                 .text( data.result.message )
                 .prepend('#uploaded-files-status');
@@ -108,12 +119,12 @@ function fileuploadDone (e, data) {
     }
     if ( data.result.status == 0 ) {
         // Not successfully uploaded.
-        if ( $('#uploaded-files-status p.error').length ) {
-            $('#uploaded-files-status p.error')
+        if ( jQuery('#uploaded-files-status p.error').length ) {
+            jQuery('#uploaded-files-status p.error')
                 .text( data.result.message + data.result.orig_filename);
         }
         else {
-            $('<p/>')
+            jQuery('<p/>')
                 .addClass('error')
                 .text( data.result.message + data.result.orig_filename)
                 .prepend('#uploaded-files-status');
@@ -124,7 +135,7 @@ function fileuploadDone (e, data) {
 
         // Inform the user if a new category has been created.
         if ( data.result.cat_is_new == 1 ) {
-            $('<p/>')
+            jQuery('<p/>')
                 .addClass('new-category-created')
                 .addClass('selected-album')
                 .text('The album ' + data.result.cat_label
@@ -134,7 +145,7 @@ function fileuploadDone (e, data) {
 
         // Update the row to reflect that upload is complete. Update the
         // filename too, to show if a file was renamed during upload.
-        $('#uploaded-files-status p span.filename:contains("' 
+        jQuery('#uploaded-files-status p span.filename:contains("' 
             + data.result.orig_name + '")')
             .text( data.result.asset_name ) // Update with new filename
             .parent()                       // Find the parent '<p>'
@@ -145,7 +156,7 @@ function fileuploadDone (e, data) {
         // Update the three preview divs, changing their title from the
         // original file name to the saved asset id. That gives us an easy way
         // to grab them to build the tabbed panels.
-        $('div#previews canvas[title="'+data.result.orig_name+'"]')
+        jQuery('div#previews canvas[title="'+data.result.orig_name+'"]')
             .attr('title', data.result.asset_id);
 
         // Save the object with the important variables to be used to create
@@ -155,16 +166,16 @@ function fileuploadDone (e, data) {
 
         // Now that we have the asset ID we can offer the option to remove
         // this file from the batch and the server.
-        $('#uploaded-files-status p#' + data.result.asset_id + ' span.remove')
+        jQuery('#uploaded-files-status p#' + data.result.asset_id + ' span.remove')
             .on('click', function(){
             var asset_id = $(this).parent().attr('id');
-            $.ajax({
+            jQuery.ajax({
                 url: CMSScriptURI,
                 data: { '__mode': 'PhotoGallery.remove_photo', 'asset_id': asset_id },
                 dataType: 'json',
                 success: function(response){
                     // Remove the asset from the uploaded list.
-                    $('p#'+asset_id).fadeOut('slow').remove();
+                    jQuery('p#'+asset_id).fadeOut('slow').remove();
 
                     // Remove the asset from the array of saved assets.
                     for(var i=0; i<saved_assets.length; i++) {
@@ -196,12 +207,12 @@ function fileuploadFail (e, data) {
 function paginateNextStepButton () {
     // Make sure something has been selected to upload, and make sure that the
     // selected files have finished uploading before moving on.
-    if ( $('#uploaded-files-status p.upload-complete').length == 0 ) {
+    if ( jQuery('#uploaded-files-status p.upload-complete').length == 0 ) {
         alert('Select photos to be uploaded before continuing.');
         return false;
     }
 
-    if ( $('#uploaded-files-status p.upload').length ) {
+    if ( jQuery('#uploaded-files-status p.upload').length ) {
         alert('Your photos are in the process of uploading. Once complete '
             + 'you can continue to the next step.');
         return false;
@@ -210,8 +221,8 @@ function paginateNextStepButton () {
 
     // Before moving on we need to parse the uploaded file data and build the
     // sortable entry listing.
-    $('#next-step-button').attr('disabled','disabled');
-    $('#processing').show(); // Show the processing indicator
+    jQuery('#next-step-button').attr('disabled','disabled');
+    jQuery('#processing').show(); // Show the processing indicator
 
     // We can't be sure that saved_assets is sorted as we want it. Objects
     // were added to the saved_assets array as their file upload completed,
@@ -220,8 +231,8 @@ function paginateNextStepButton () {
     // that order, so resort saved_assets based on the order files were
     // selected in.
     var new_sort = Array();
-    $('#uploaded-files-status p.upload-complete').each(function() {
-        var sorted_asset_id = $(this).attr('id');
+    jQuery('#uploaded-files-status p.upload-complete').each(function() {
+        var sorted_asset_id = jQuery(this).attr('id');
         for(var i=0; i<saved_assets.length; i++) {
             var obj = saved_assets[i];
             if ( obj.asset_id == sorted_asset_id ) {
@@ -240,16 +251,16 @@ function paginateNextStepButton () {
 
         // If an Entry panel with the specified asset ID has already been
         // created we don't want to duplicate it. Just move on.
-        if ( $('form[name="'+obj.asset_id+'"]').length >= 1 ) {
+        if ( jQuery('form[name="'+obj.asset_id+'"]').length >= 1 ) {
             //alert('Already created a panel for asset '+obj.asset_id);
             continue; // "next" in Perl
         };
 
         // Update the category name notification
-        $('#photo-album-title span').text(obj.cat_label);
+        jQuery('#photo-album-title span').text(obj.cat_label);
 
         // Add the navigation tab
-        $('<li/>')
+        jQuery('<li/>')
             .attr('id', obj.asset_id) // For the sortable serialization
             .html('<a href="#asset_id-' + obj.asset_id + '">'
                 + '<span class="filename">' + obj.asset_name + '</span>'
@@ -258,7 +269,7 @@ function paginateNextStepButton () {
             .appendTo('#tabs ul');
 
         // Add the tab panel where the entry fields are displayed.
-        $('form#entry')
+        jQuery('form#entry')
             .clone() // Copy the "template" to build the real panel
             .removeClass('hidden')
             .addClass('ui-tabs-panel ui-tabs-hide')
@@ -276,7 +287,7 @@ function paginateNextStepButton () {
         // Create a div for the popup dialog which lives outside of the tabbed
         // panels. (For some reason, the popup doesn't work reliably when the
         // dialog is in a panel, it seems.)
-        $('<div/>')
+        jQuery('<div/>')
             .attr('title', 'Preview of '+obj.asset_name)
             .addClass('dialog '+obj.asset_id)
             .hide()
@@ -300,7 +311,7 @@ function paginateNextStepButton () {
             panel_max_width  = (panel_max_height * obj.asset_w) / obj.asset_h;
         }
         // Now, create and insert the preview images in the correct locations.
-        $('a[href="#asset_id-'+obj.asset_id+'"] span.preview')
+        jQuery('a[href="#asset_id-'+obj.asset_id+'"] span.preview')
             .html(
                 loadImage(
                     obj.asset_url,
@@ -310,7 +321,7 @@ function paginateNextStepButton () {
                     { maxHeight: tab_max_height, maxWidth: tab_max_width }
                 )
             );
-        $('form[name="'+obj.asset_id+'"] div.preview')
+        jQuery('form[name="'+obj.asset_id+'"] div.preview')
             .html(
                 loadImage(
                     obj.asset_url,
@@ -320,7 +331,7 @@ function paginateNextStepButton () {
                     { maxHeight: panel_max_height, maxWidth: panel_max_width }
                 )
             );
-        $('div.dialog.'+obj.asset_id)
+        jQuery('div.dialog.'+obj.asset_id)
             .html(
                 loadImage(
                     obj.asset_url,
@@ -334,10 +345,10 @@ function paginateNextStepButton () {
 
     // When the user clicks on the small preview image they should be shown a
     // larger image in the dialog window.
-    $('form .preview').on('click', function(){
+    jQuery('form .preview').on('click', function(){
         // I think this shold be able to live in the jQuery(document).ready
         // function, but it doesn't work there...
-        $('.dialog').dialog({
+        jQuery('.dialog').dialog({
             autoOpen: false,
             width: 900, // auto width isn't an option
             minHeight: 150,
@@ -347,23 +358,23 @@ function paginateNextStepButton () {
         });
         // Find the dialog for the panel the user is working in.
         var asset_id = $(this).parent().attr('name');
-        $('div.dialog.'+asset_id).dialog('open');
+        jQuery('div.dialog.'+asset_id).dialog('open');
     });
 
-    $('#tabs .ui-tabs-panel:first').removeClass('ui-tabs-hide');
+    jQuery('#tabs .ui-tabs-panel:first').removeClass('ui-tabs-hide');
 
     // Create the vertical tabs for the ordering/editing interface
-    $('#tabs').tabs().addClass('ui-tabs-vertical ui-helper-clearfix');
-    $('#tabs li').removeClass('ui-corner-top').addClass('ui-corner-left');
+    jQuery('#tabs').tabs().addClass('ui-tabs-vertical ui-helper-clearfix');
+    jQuery('#tabs li').removeClass('ui-corner-top').addClass('ui-corner-left');
 
     // Make the vertical tabs sortable.
-    $('#tabs ul').sortable();
+    jQuery('#tabs ul').sortable();
 
     // Now advance to the next page.
-    $('#paginate').trigger('next.evtpaginate');
-    $('#processing').hide(); // Hide the processing indicator
+    jQuery('#paginate').trigger('next.evtpaginate');
+    jQuery('#processing').hide(); // Hide the processing indicator
 
-    $('#next-step-button').removeAttr('disabled');
+    jQuery('#next-step-button').removeAttr('disabled');
     return false;
 }
 
@@ -372,18 +383,18 @@ function paginateNextStepButton () {
 // it into entries with the associated assets, building the slideshow.
 function paginateSavePhotosButton() {
     // Finally ready to save the photo gallery the user's been building.
-    $('#save').attr('disabled','disabled');
-    $('#processing').show(); // Show the processing indicator
+    jQuery('#save').attr('disabled','disabled');
+    jQuery('#processing').show(); // Show the processing indicator
 
     // Show the Entry Save Status field.
-    $('#entry-save-status-field').show();
+    jQuery('#entry-save-status-field').show();
 
     // Grab the entry sort order. Use it to submit the entries to save in the
     // correct order.
-    var sort_order = $('#tabs ul').sortable('toArray');
+    var sort_order = jQuery('#tabs ul').sortable('toArray');
 
     // We want to do a *synchronous* AJAX request. (AJAX is normally
-    // asyncrhonous -- Asynchronous Javascript ans XML. So this is really
+    // asyncrhonous -- Asynchronous Javascript and XML. So this is really
     // SJAX, I guess.) The SJAX request is so that we can be sure to save the
     // entries in the order requested. That is, with a normal Ajax request, we
     // would submit each entry to be saved, but we can't be sure they'll
@@ -396,14 +407,13 @@ function paginateSavePhotosButton() {
     // actual Ajax request.
     for(var i=0; i<sort_order.length; i++) {
         var id = sort_order[i];
-
-        $('<p/>')
+        jQuery('<p/>')
             .fadeIn('slow')
             .addClass('entry saving')
             .attr('id', 'asset-'+id)
             .html( '<span class="name">'
-                + $('form[name="'+id+'"] h3').text() + ' | '
-                + $('form[name="'+id+'"] input[name="title"]').val()
+                + jQuery('form[name="'+id+'"] h3').text() + ' | '
+                + jQuery('form[name="'+id+'"] input[name="title"]').val()
                 + '</span><span class="status"></span>'
                 + '<a class="edit hidden" target="_blank" title="Edit in a new window"></a>'
                 + '<a class="view" target="_blank" title="View in a new window"></a>')
@@ -418,23 +428,23 @@ function paginateSavePhotosButton() {
 
     // Update the save status overview message. It currently reads "Saving
     // entries..." and it should reflect that the saving step is done.
-    $('p#entry-save-overview').text('Entries saved.');
+    jQuery('p#entry-save-overview').text('Entries saved.');
 
     republishEntries();
 
     // Done! Success! Suggest the user create another album!
-    $('.actions-bar button').addClass('hidden');
-    $('.actions-bar button#create-another-album').removeClass('hidden');
-    $('#processing').hide(); // Hide the processing indicator
+    jQuery('.actions-bar button').addClass('hidden');
+    jQuery('.actions-bar button#create-another-album').removeClass('hidden');
+    jQuery('#processing').hide(); // Hide the processing indicator
 }
 
 // Save the individual entry.
 function saveEntry(id) {
-    $.ajax({
+    jQuery.ajax({
         type: 'POST',
         async: false, // Need synchronous operation to save entries in preferred order.
         url: CMSScriptURI,
-        data: $('form[name="'+id+'"]').serialize(),
+        data: jQuery('form[name="'+id+'"]').serialize(),
         dataType: 'json',
         success: function(data, textStatus, jqXHR) {
             // A valid response has been received from the server, but we
@@ -442,13 +452,13 @@ function saveEntry(id) {
             // if the file was successfully written to the server.
             if ( data.status == -1 ) {
                 // Fatal error! Misconfiguration?
-                if ( $('#entry-save-status p.error').length ) {
-                    $('#entry-save-status p.error')
+                if ( jQuery('#entry-save-status p.error').length ) {
+                    jQuery('#entry-save-status p.error')
                         .text( data.message )
                         .fadeIn('slow');
                 }
                 else {
-                    $('<p/>')
+                    jQuery('<p/>')
                         .addClass('error')
                         .text( data.message )
                         .fadeIn('slow')
@@ -457,8 +467,8 @@ function saveEntry(id) {
 
                 // If the process is failing there's no point in
                 // showing the status of the entries being saved.
-                $('#entry-save-status p.entry').each(function(index) {
-                    $(this).remove();
+                jQuery('#entry-save-status p.entry').each(function(index) {
+                    jQuery(this).remove();
                 });
             }
             else if ( data.status == 0 ) {
@@ -467,17 +477,17 @@ function saveEntry(id) {
             else if ( data.status == 1 ) {
                 // The entry was successfully saved! Update the status
                 // box with the edit link and "completed" checkbox.
-                $('#entry-save-status p#asset-'+data.asset_id)
+                jQuery('#entry-save-status p#asset-'+data.asset_id)
                     .removeClass('saving')
                     .addClass('saved entry_id-'+data.entry_id);
 
                 // The Edit link
-                $('#entry-save-status p#asset-'+data.asset_id+' a.edit')
+                jQuery('#entry-save-status p#asset-'+data.asset_id+' a.edit')
                     .attr('href', CMSScriptURI
                         + '?__mode=view&amp;_type=entry&amp;id='
                         + data.entry_id 
                         + '&amp;blog_id='
-                        + $('input[name="blog_id"]').val() )
+                        + jQuery('input[name="blog_id"]').val() )
                     .removeClass('hidden');
 
                 // If this entry is supposed to be published, note it. All
@@ -505,19 +515,19 @@ function republishEntries() {
         return;
     }
 
-    $('<p/>')
+    jQuery('<p/>')
         .addClass('publishing')
         .html('Publishing entries and archives...'
             + '<span class="status"></span>')
         .appendTo('#entry-save-status');
 
-    $.ajax({
+    jQuery.ajax({
         type: 'POST',
         url: CMSScriptURI,
         data: {
             '__mode': 'PhotoGallery.multi_repub',
-            'magic_token': $('input[name="magic_token"]').val(),
-            'blog_id': $('input[name="blog_id"]').val(),
+            'magic_token': jQuery('input[name="magic_token"]').val(),
+            'blog_id': jQuery('input[name="blog_id"]').val(),
             'entry_ids': to_republish.join(',')
         },
         dataType: 'json',
@@ -527,13 +537,13 @@ function republishEntries() {
             // if the file was successfully written to the server.
             if ( data.status == -1 ) {
                 // Fatal error! Misconfiguration?
-                if ( $('#entry-save-status p.error').length ) {
-                    $('#entry-save-status p.error')
+                if ( jQuery('#entry-save-status p.error').length ) {
+                    jQuery('#entry-save-status p.error')
                         .text( data.message )
                         .fadeIn('slow');
                 }
                 else {
-                    $('<p/>')
+                    jQuery('<p/>')
                         .addClass('error')
                         .text( data.message )
                         .fadeIn('slow')
@@ -550,12 +560,12 @@ function republishEntries() {
                 for(var i=0; i<data.published_entries.length; i++) {
                     var obj = data.published_entries[i];
 
-                    $('#entry-save-status p.entry_id-'+obj.entry_id+' a.view')
+                    jQuery('#entry-save-status p.entry_id-'+obj.entry_id+' a.view')
                         .attr('href', obj.entry_url)
                         .removeClass('hidden');
                 }
 
-                $('#entry-save-status p.publishing')
+                jQuery('#entry-save-status p.publishing')
                     .removeClass('publishing')
                     .addClass('published')
                     .html('Published. <a href="'
@@ -568,14 +578,14 @@ function republishEntries() {
         error: function (jqXHR, textStatus, errorThrown) {
             // If an error was thrown, it was likely that MT couldn't publish
             // a template for some reason. Tell the user!
-            var mt_error = $("<div>").html(jqXHR.responseText).find('#generic-error');
+            var mt_error = jQuery("<div>").html(jqXHR.responseText).find('#generic-error');
             if (mt_error) {
-                $('<div/>')
+                jQuery('<div/>')
                     .html(mt_error)
                     .appendTo('#entry-save-status');
             }
 
-            $('#entry-save-status p.publishing')
+            jQuery('#entry-save-status p.publishing')
                 .removeClass('publishing')
                 .addClass('error')
                 .html('Publishing failed.');

@@ -37,7 +37,6 @@ function onSelectAlbum() {
 
 <mt:include name="dialog/header.tmpl">
 
-<mt:else>
 <form method="post" enctype="multipart/form-data" action="<mt:var name="script_url">" id="upload-form">
     <input type="hidden" name="__mode" value="PhotoGallery.upload_photo" />
     <input type="hidden" name="blog_id" value="<mt:var name="blog_id">" />
@@ -50,13 +49,16 @@ function onSelectAlbum() {
         hint=""
         show_hint="0">
         <select name="category_id" onchange="onSelectAlbum()" id="album">
-          <option value="">Select...</option>
-<TMPL_LOOP NAME=CATEGORY_LOOP>
-<mt:if name="category_label" ne="Favorites">
-          <option value="<TMPL_VAR NAME=CATEGORY_ID>"<TMPL_IF NAME="CATEGORY_SELECTED"> selected</TMPL_IF>><TMPL_VAR NAME=CATEGORY_LABEL></option>
-</mt:if>
-</TMPL_LOOP>
-          <option value="__new">New Album</option>
+            <option value="">Select...</option>
+<mt:Loop name="category_loop">
+    <mt:If name="category_label" ne="Favorites">
+            <option value="<mt:Var name="category_id">"
+                <mt:If name="category_selected"> selected</mt:If>>
+                <mt:Var name="category_label">
+            </option>
+    </mt:If>
+</mt:Loop>
+            <option value="__new">New Album</option>
         </select>
     </mtapp:setting>
 
@@ -81,13 +83,13 @@ function onSelectAlbum() {
     <div class="actions-bar">
         <div class="actions-bar-inner pkg actions">
             <button
+                class="primary button"
                 type="submit"
                 accesskey="s"
                 title="<__trans phrase="Upload (s)">"
-                class="primary-button"
                 ><__trans phrase="Upload Photo"></button>
             <button
-                onclick="closeDialog(); return false"
+                class="mt-close-dialog button"
                 type="submit"
                 accesskey="x"
                 title="<__trans phrase="Cancel (x)">"
@@ -96,6 +98,5 @@ function onSelectAlbum() {
     </div>
 
 </form>
-</mt:if>
 
 <mt:include name="dialog/footer.tmpl">
