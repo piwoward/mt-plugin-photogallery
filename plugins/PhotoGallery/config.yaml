@@ -9,6 +9,7 @@ version: 2.7.0
 
 object_types:
     asset.photo: 'MT::Asset::ImagePhoto'
+    photo: 'MT::Asset::ImagePhoto'
 
 config_types:
   photogallery:
