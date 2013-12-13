@@ -69,14 +69,16 @@ jQuery(document).ready(function($) {
 // for adding the file to the status line and submitting the file for upload.
 function fileuploadAdd (e, data) {
     // Before starting the upload be sure that an album has been selected.
-    if ( jQuery('select#album').val() == '' ) {
+    if ( jQuery('select#category_id').val() == '' ) {
         alert('An album must be selected (or created) before starting an upload.');
         return false;
     }
 
     // "Lock" the album picker fields so that a different album can't be
     // selected mid-upload.
-    jQuery('select#album, input#new_album_name').prop('disabled', true);
+    jQuery('select#category_id, input#new_album_name').focus(function(e) {
+        $(this).blur();
+    });
 
     // Add the uploaded file to the Photo Upload Progress area.
     jQuery('#uploaded-files-status-field').show();
@@ -165,19 +167,22 @@ function fileuploadDone (e, data) {
         // this file from the batch and the server.
         jQuery('#uploaded-files-status p#' + data.result.asset_id + ' span.remove')
             .on('click', function(){
-            var asset_id = $(this).parent().attr('id');
             jQuery.ajax({
                 url: CMSScriptURI,
-                data: { '__mode': 'PhotoGallery.remove_photo', 'asset_id': asset_id },
+                data: {
+                    '__mode': 'PhotoGallery.remove_photo',
+                    'asset_id': data.result.asset_id,
+                    'magic_token': jQuery('input[name="magic_token"]').val()
+                },
                 dataType: 'json',
                 success: function(response){
                     // Remove the asset from the uploaded list.
-                    jQuery('p#'+asset_id).fadeOut('slow').remove();
+                    jQuery('p#'+data.result.asset_id).fadeOut('slow').remove();
 
                     // Remove the asset from the array of saved assets.
                     for(var i=0; i<saved_assets.length; i++) {
                         var obj = saved_assets[i];
-                        if ( obj.asset_id == asset_id ) {
+                        if ( obj.asset_id == data.result.asset_id ) {
                             saved_assets.splice( i, 1 );
                             break; // Exit the loop since we're done.
                         }
@@ -276,7 +281,8 @@ function paginateNextStepButton () {
             .find('h3').text(obj.asset_name)      // Populate fields
             .parent()
             .find('input[name="title"]').val(obj.asset_name)
-            .parent().parent().parent().parent().parent() // Up 5 levels to the form
+            // .parent().parent().parent().parent().parent() // Up 5 levels to the form
+            .parent().parent().parent().parent()
             .find('input[name="asset_id"]').val(obj.asset_id)
             .parent()
             .find('input[name="cat_id"]').val(obj.cat_id);
