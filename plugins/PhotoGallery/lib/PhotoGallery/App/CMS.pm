@@ -788,7 +788,12 @@ sub multi_upload_photo {
         }
     }
     else {
-        $cat = MT->model('category')->load( $cat_id, { cached_ok => 1 } );
+        $cat = MT->model('category')->load( $cat_id, { cached_ok => 1 } )
+            or return MT::Util::to_json({
+                status  => -1,
+                message => 'Album (category) ID ' . $q->param('category_id')
+                    . ' could not be found.',
+            });
     }
 
     my @files = $q->param('files');
