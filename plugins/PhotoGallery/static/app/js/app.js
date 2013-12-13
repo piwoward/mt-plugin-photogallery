@@ -34,7 +34,7 @@ jQuery(document).ready(function($) {
     $('#save').click( paginateSavePhotosButton );
 
     // Show/hide the New Album Name field.
-    $('#album').change(function(){
+    $('select#category_id').change(function(){
         if ( $(this).val() == '__new' ) {
             $('#new-album-field').show();
         }
@@ -48,9 +48,6 @@ jQuery(document).ready(function($) {
         dataType: 'json',
         dropZone: $('#file-field'),
         fileInput: $('#fileupload'),
-        formData: function (form) {
-            return form.serializeArray();
-        },
         acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i, // Only upload "photos"
         add: fileuploadAdd,
         done: fileuploadDone,

@@ -769,14 +769,15 @@ sub multi_upload_photo {
 
     if ( $cat_id eq '__new' || $cat_id eq '' ) {
         # Check if the category exists before trying to create it.
+        my $cat_label = $q->param('new_album_name') || 'Untitled';
         unless (
             $cat = MT->model('category')->load({
-                label => $q->param('new_album_name') || 'Untitled',
+                label => $cat_label,
             })
         ) {
             # This album is definitely new, so let's create it.
             $cat = MT->model('category')->new;
-            $cat->label( $q->param('new_album_name') || 'Untitled' );
+            $cat->label( $cat_label );
             $cat->blog_id( $blog->id );
             $cat->save or die MT::Util::to_json({
                 status  => -1,
