@@ -708,9 +708,8 @@ sub start_batch {
 
     return $app->show_error('Insufficient permissions to upload files or '
         . 'create entries on this blog.')
-        if !$app->user->permissions->can_upload
-            || !$app->user->permissions->can_post
-            || !$app->user->permissions->can_administer;
+        if !$app->user->permissions($blog->id)->can_upload
+            || !$app->user->permissions($blog->id)->can_post;
 
     # Populate the Photo Album (categories) dropdown picker.
     my $iter = MT->model('category')->load_iter({ blog_id => $blog->id });
@@ -745,8 +744,7 @@ sub multi_upload_photo {
         status  => -1,
         message => 'Insufficient permissions to upload files to this blog.',
     })
-        if !$app->user->permissions->can_upload
-            || !$app->user->permissions->can_administer;
+        if !$app->user->permissions($blog->id)->can_upload;
 
     return MT::Util::to_json({
         status  => -1,
@@ -1056,15 +1054,15 @@ sub _write_file {
 # The Ajax call to delete the uploaded photo. (Perhaps they selected the wrong
 # photo or realized it shouldn't be part of the selecte album or soemthing.)
 sub ajax_remove_photo {
-    my $app = shift;
-    my $q   = $app->can('query') ? $app->query : $app->param;
+    my $app  = shift;
+    my $blog = $app->blog;
+    my $q    = $app->can('query') ? $app->query : $app->param;
 
     return MT::Util::to_json({
         status  => -1,
         message => 'Insufficient permissions to upload files to this blog.',
     })
-        if !$app->user->permissions->can_upload
-            || !$app->user->permissions->can_administer;
+        if !$app->user->permissions($blog->id)->can_upload;
 
     $app->validate_magic()
         or return MT::Util::to_json({
@@ -1112,9 +1110,8 @@ sub multi_save {
         status  => -1,
         message => 'Insufficient permissions to upload files to this blog.',
     })
-        if !$app->user->permissions->can_upload
-            || !$app->user->permissions->can_post
-            || !$app->user->permissions->can_administer;
+        if !$app->user->permissions($blog->id)->can_upload
+            || !$app->user->permissions($blog->id)->can_post;
 
     $app->validate_magic()
         or return MT::Util::to_json({
@@ -1230,8 +1227,7 @@ sub multi_republish {
         status  => -1,
         message => 'Insufficient permissions to publish entries in this blog.',
     })
-        if !$app->user->permissions->can_post
-            || !$app->user->permissions->can_administer;
+        if !$app->user->permissions($blog_id)->can_post;
 
     $app->validate_magic()
         or return MT::Util::to_json({
