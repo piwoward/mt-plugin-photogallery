@@ -1330,5 +1330,26 @@ sub multi_republish {
     });
 }
 
+# This list action (on the Manage Assets screen) will allow the user to change
+# assets to type "photo," which is what the Photo Gallery plugin expects to
+# have. This is useful to fix assets created incorrectly or to update an old
+# blog, for example.
+sub asset_change_to_type_photo {
+    my ($app) = @_;
+    $app->validate_magic or return;
+    my $q     = $app->can('query') ? $app->query : $app->param;
+    my @asset_ids = $q->param('id');
+
+    foreach my $asset_id (@asset_ids) {
+        my $asset = $app->model('asset')->load($asset_id)
+            or next;
+
+        $asset->class('photo');
+        $asset->save or die $asset->errstr;
+    }
+
+    $app->call_return;
+}
+
 1;
 __END__
