@@ -107,6 +107,47 @@ HTML
     $$html_ref =~ s{<li id="create-entry" class="nav-link">.*</a></li>}{$replacement};
 }
 
+# The cms_upload_file.image callback can help us identify if an image should
+# actually be a "photo" asset type instead. Determine and reassign, if
+# neccessary.
+sub callback_upload_file {
+    my $cb = shift;
+    my (%params) = @_;
+    my $app = MT->instance;
+
+    # Give up if this isn't a Photo Gallery blog
+    return if !in_gallery();
+
+    # Get the field name the uploaded image is being inserted into.
+    my $field_basename = $app->param('edit_field');
+    $field_basename =~ s/^customfield_//;
+
+    # Give up if no custom field can be found. "Normal" uploads can be type
+    # `image` and we only want to check for Custom Fields that need to be
+    # captured.
+    return if !$field_basename;
+
+    # Look for all fields in this blog that match the basename. There should
+    # only ever be one, though, right? (Basenames can't conflict.)
+    my @fields = $app->model('field')->load({
+        basename => $field_basename,
+        blog_id  => $app->blog->id,
+    });
+    foreach my $field (@fields) {
+        # Give up if this Custom Field is a photo asset field type. There are at
+        # least two options: `photo` (created by the Photo Gallery plugin) and
+        # `selected_asset.photos` (created by the More Custom Fields plugin).
+        # Maybe others?
+        next if $field->type !~ /photo/;
+
+        # The field type is a photo of some sort, so set the asset to the photo
+        # type so that it is used correctly.
+        my $asset = $params{'Asset'};
+        $asset->class('photo');
+        $asset->save or die $asset->errstr;
+    }
+}
+
 sub load_list_filters {
     if ( in_gallery() ) {
         my $core  = MT->component('Core');
