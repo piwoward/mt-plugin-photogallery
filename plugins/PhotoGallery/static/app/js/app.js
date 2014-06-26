@@ -172,6 +172,7 @@ function fileuploadDone (e, data) {
                 data: {
                     '__mode': 'PhotoGallery.remove_photo',
                     'asset_id': data.result.asset_id,
+                    'blog_id': data.result.blog_id,
                     'magic_token': jQuery('input[name="magic_token"]').val()
                 },
                 dataType: 'json',

@@ -819,6 +819,7 @@ sub multi_upload_photo {
             asset_url  => $asset->url,
             asset_w    => $asset->image_width,
             asset_h    => $asset->image_height,
+            blog_id    => $blog->id,
         });
     }
 
@@ -1212,6 +1213,7 @@ sub multi_save {
         asset_id     => $asset->id,
         entry_id     => $entry->id,
         entry_status => $entry->status,
+        blog_id      => $entry->blog->id,
     });
 }
 
