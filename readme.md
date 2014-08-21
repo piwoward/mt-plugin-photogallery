@@ -14,7 +14,7 @@ The Photo Gallery Plugin for Movable Type contains two components:
 
 # Prerequisites
 
-* Movable Type 5+
+* Movable Type 5 or 6
 * [Config Assistant](https://github.com/openmelody/mt-plugin-configassistant/releases)
 
 Additionally, if you want to use the included Mid-Century Photo Gallery theme,
