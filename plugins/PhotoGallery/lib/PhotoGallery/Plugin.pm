@@ -19,6 +19,10 @@ sub in_gallery {
 # (in Plugin Settings) be checked to affect things.
 sub unless_gallery {
     my $app = MT::App->instance;
+
+    # At System Overview
+    return 1 if $app->param('blog_id') == 0;
+
     # Only proceed if this is a photo gallery blog and if the suppress option
     # has been enabled.
     return 0 if !$app->blog;
