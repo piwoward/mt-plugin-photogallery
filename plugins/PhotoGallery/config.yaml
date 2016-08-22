@@ -52,6 +52,14 @@ options:
         condition: PhotoGallery::Plugin::in_gallery
         scope: blog
         fieldset: admin
+    reverse_photo_upload_order:
+        type: 'checkbox'
+        label: 'Reverse photo upload order'
+        hint: 'If selected photos will be uploaded in a reverse order'
+        tag: 'ReversePhotoUploadOrder'
+        default: 0
+        scope: blog
+        fieldset: admin
 
 list_actions:
     asset:
