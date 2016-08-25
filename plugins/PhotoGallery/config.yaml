@@ -4,7 +4,7 @@ description: 'The Photo Gallery plugin allows users to easily create photo galle
 author_name: 'Byrne Reese'
 author_link: 'http://www.majordojo.com/'
 plugin_link: 'https://github.com/endevver/mt-plugin-photogallery'
-static_version: 8
+static_version: 9
 version: 2.7.8
 
 object_types:
@@ -50,6 +50,14 @@ options:
         tag: 'IfSuppressCreateEntry?'
         default: 1
         condition: PhotoGallery::Plugin::in_gallery
+        scope: blog
+        fieldset: admin
+    reverse_uploaded_photos_sort_order:
+        type: 'checkbox'
+        label: 'Reverse uploaded photos sort order'
+        hint: 'In the upload photo process (step 2), the photos are being saved as entries in the order requested by a user. If this options is selected the photos will be saved in a reverse order (from bottom to top).'
+        tag: 'ReverseUploadedPhotosSortOrder'
+        default: 0
         scope: blog
         fieldset: admin
 

@@ -396,6 +396,9 @@ function paginateSavePhotosButton() {
     // Grab the entry sort order. Use it to submit the entries to save in the
     // correct order.
     var sort_order = jQuery('#tabs ul').sortable('toArray');
+    if (window.reverse_uploaded_photos_sort_order) {
+        sort_order.reverse();
+    }
 
     // We want to do a *synchronous* AJAX request. (AJAX is normally
     // asyncrhonous -- Asynchronous Javascript and XML. So this is really

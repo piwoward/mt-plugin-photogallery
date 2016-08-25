@@ -114,6 +114,13 @@ After all photo's have been updated, click Save Photos. The status area will
 note saving and publishing progress, and finally present you with links to edit
 and view the album contents.
 
+### Save uploaded photos in a reverse order
+
+By default photos are being saves as entries in the order selected by a user (
+from the top to the bottom of the list). If (for any reasons) you want reverse this
+order, go to Blog > Tools > Plugins > Photo Gallery > Settings and select the "
+Reverse uploaded photo sort order" option. After that photos will be saved in a reversed
+order (from the bottom to the top of the uploaded photos list).
 
 ## Configuring the Mid-Century Photo Gallery Theme
 
